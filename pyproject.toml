@@ -6,7 +6,6 @@ requires-python = ">=3.11"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    "frappe",
     "openpyxl>=3.1.0",
 ]
 
