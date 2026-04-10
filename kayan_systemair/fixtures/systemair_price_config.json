@@ -1,5 +1,6 @@
 [
   {
+    "name": "SystemAir Price Config",
     "doctype": "SystemAir Price Config",
     "vat_rate": 14.0,
     "cost_factor_1": 1.05,

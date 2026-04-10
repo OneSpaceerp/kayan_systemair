@@ -1,30 +1,9 @@
 [
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Submit for Review"
-  },
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Approve"
-  },
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Reject"
-  },
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Mark Sent"
-  },
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Mark Won"
-  },
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Mark Lost"
-  },
-  {
-    "doctype": "Workflow Action Master",
-    "workflow_action_name": "Cancel"
-  }
+  {"name": "Submit for Review", "doctype": "Workflow Action Master", "workflow_action_name": "Submit for Review"},
+  {"name": "Approve", "doctype": "Workflow Action Master", "workflow_action_name": "Approve"},
+  {"name": "Reject", "doctype": "Workflow Action Master", "workflow_action_name": "Reject"},
+  {"name": "Mark Sent", "doctype": "Workflow Action Master", "workflow_action_name": "Mark Sent"},
+  {"name": "Mark Won", "doctype": "Workflow Action Master", "workflow_action_name": "Mark Won"},
+  {"name": "Mark Lost", "doctype": "Workflow Action Master", "workflow_action_name": "Mark Lost"},
+  {"name": "Cancel", "doctype": "Workflow Action Master", "workflow_action_name": "Cancel"}
 ]

@@ -1,5 +1,6 @@
 [
   {
+    "name": "Item-sa_nominal_diameter",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_nominal_diameter",
@@ -9,6 +10,7 @@
     "options": "315\n355\n400\n450\n500\n560\n630\n710\n800\n900\n1000\n1120\n1250\n1400\n1600"
   },
   {
+    "name": "Item-sa_num_blades",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_num_blades",
@@ -17,6 +19,7 @@
     "label": "SA: Number of Blades"
   },
   {
+    "name": "Item-sa_blade_angle",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_blade_angle",
@@ -25,6 +28,7 @@
     "label": "SA: Blade Angle (\u00b0)"
   },
   {
+    "name": "Item-sa_num_poles",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_num_poles",
@@ -34,6 +38,7 @@
     "options": "2\n4\n6\n8"
   },
   {
+    "name": "Item-sa_smoke_rating",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_smoke_rating",
@@ -43,6 +48,7 @@
     "options": "\nB\nF"
   },
   {
+    "name": "Item-sa_weight_kg",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_weight_kg",
@@ -51,6 +57,7 @@
     "label": "SA: Approx. Weight (kg)"
   },
   {
+    "name": "Item-sa_article_no",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_article_no",
@@ -59,6 +66,7 @@
     "label": "SA: Article No. (Systemair)"
   },
   {
+    "name": "Item-sa_product_family",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_product_family",
@@ -67,6 +75,7 @@
     "label": "SA: Product Family"
   },
   {
+    "name": "Item-sa_primary_factory",
     "doctype": "Custom Field",
     "dt": "Item",
     "fieldname": "sa_primary_factory",
@@ -75,6 +84,7 @@
     "label": "SA: Primary Factory"
   },
   {
+    "name": "Quotation-sa_pricing_section",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_pricing_section",
@@ -83,6 +93,7 @@
     "label": "SystemAir Configuration"
   },
   {
+    "name": "Quotation-is_systemair_quotation",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "is_systemair_quotation",
@@ -91,6 +102,7 @@
     "label": "Is SystemAir Quotation"
   },
   {
+    "name": "Quotation-sa_project_ref",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_project_ref",
@@ -99,6 +111,7 @@
     "label": "Project Reference"
   },
   {
+    "name": "Quotation-sa_eur_egp_rate",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_eur_egp_rate",
@@ -107,6 +120,7 @@
     "label": "EUR/EGP Exchange Rate"
   },
   {
+    "name": "Quotation-sa_default_customs",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_default_customs",
@@ -115,6 +129,7 @@
     "label": "Default Customs Duty %"
   },
   {
+    "name": "Quotation-sa_default_discount",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_default_discount",
@@ -123,6 +138,7 @@
     "label": "Default Supplier Discount %"
   },
   {
+    "name": "Quotation-sa_additional_discount",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_additional_discount",
@@ -131,6 +147,7 @@
     "label": "Default Additional Discount %"
   },
   {
+    "name": "Quotation-sa_default_margin",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_default_margin",
@@ -139,6 +156,7 @@
     "label": "Default Margin %"
   },
   {
+    "name": "Quotation-sa_shipping_rate",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_shipping_rate",
@@ -147,6 +165,7 @@
     "label": "Shipping Rate %"
   },
   {
+    "name": "Quotation-sa_total_cif_eur",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_total_cif_eur",
@@ -156,6 +175,7 @@
     "read_only": 1
   },
   {
+    "name": "Quotation-sa_grand_total_egp",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_grand_total_egp",
@@ -165,6 +185,7 @@
     "read_only": 1
   },
   {
+    "name": "Quotation-sa_effective_margin",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_effective_margin",
@@ -174,6 +195,7 @@
     "read_only": 1
   },
   {
+    "name": "Quotation-sa_items",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_items",
@@ -183,6 +205,7 @@
     "options": "SystemAir Quotation Item"
   },
   {
+    "name": "Quotation-sa_accessories",
     "doctype": "Custom Field",
     "dt": "Quotation",
     "fieldname": "sa_accessories",

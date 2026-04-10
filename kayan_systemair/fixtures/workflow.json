@@ -1,5 +1,6 @@
 [
   {
+    "name": "SystemAir Quotation Workflow",
     "doctype": "Workflow",
     "workflow_name": "SystemAir Quotation Workflow",
     "document_type": "Quotation",
