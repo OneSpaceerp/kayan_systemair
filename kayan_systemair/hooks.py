@@ -52,5 +52,4 @@ app_include_css = "/assets/kayan_systemair/css/kayan_systemair.css"
 # ── Override Whitelisted Methods ──────────────────────────────────────────────
 override_whitelisted_methods = {}
 
-# ── Boot Session ─────────────────────────────────────────────────────────────
-boot_session = "kayan_systemair.startup.boot_session"
+
