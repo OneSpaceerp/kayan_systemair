@@ -32,7 +32,7 @@ frappe.ui.form.on("SystemAir Quotation Item", {
         if (!row.item_code) return;
         // Auto-fetch list prices
         frappe.call({
-            method: "kayan_systemair.kayan_systemair.api.get_item_prices",
+            method: "kayan_systemair.api.get_item_prices",
             args: { item_code: row.item_code },
             callback(r) {
                 if (r.message) {
@@ -74,7 +74,7 @@ function recalculate_row(frm, cdt, cdn) {
     let cfg_cf      = 1.1235; // Default CF
 
     frappe.call({
-        method: "kayan_systemair.kayan_systemair.api.get_price_config",
+        method: "kayan_systemair.api.get_price_config",
         callback: function(r){
             if(r.message && r.message.combined_cost_factor){
                 cfg_cf = r.message.combined_cost_factor;

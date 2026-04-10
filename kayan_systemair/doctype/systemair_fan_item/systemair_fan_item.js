@@ -61,7 +61,7 @@ function check_item_exists(frm, code) {
 
 function fetch_prices(frm, model) {
     frappe.call({
-        method: "kayan_systemair.kayan_systemair.api.get_item_prices",
+        method: "kayan_systemair.api.get_item_prices",
         args: { item_code: model },
         callback(r) {
             if (r.message) {
@@ -75,7 +75,7 @@ function fetch_prices(frm, model) {
 function fetch_weight(frm) {
     if (!frm.doc.nominal_diameter) return;
     frappe.call({
-        method: "kayan_systemair.kayan_systemair.api.get_weight_for_diameter",
+        method: "kayan_systemair.api.get_weight_for_diameter",
         args: { diameter: frm.doc.nominal_diameter },
         callback(r) {
             if (r.message && r.message.max_weight_kg) {
