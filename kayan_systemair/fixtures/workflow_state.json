@@ -1,0 +1,30 @@
+[
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Draft"
+  },
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Pending Review"
+  },
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Approved"
+  },
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Sent to Customer"
+  },
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Order Received"
+  },
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Lost"
+  },
+  {
+    "doctype": "Workflow State",
+    "workflow_state_name": "Cancelled"
+  }
+]

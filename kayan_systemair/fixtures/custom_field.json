@@ -1,0 +1,194 @@
+[
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_nominal_diameter",
+    "fieldtype": "Select",
+    "insert_after": "item_group",
+    "label": "SA: Nominal Diameter (mm)",
+    "options": "315\n355\n400\n450\n500\n560\n630\n710\n800\n900\n1000\n1120\n1250\n1400\n1600"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_num_blades",
+    "fieldtype": "Int",
+    "insert_after": "sa_nominal_diameter",
+    "label": "SA: Number of Blades"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_blade_angle",
+    "fieldtype": "Data",
+    "insert_after": "sa_num_blades",
+    "label": "SA: Blade Angle (\u00b0)"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_num_poles",
+    "fieldtype": "Select",
+    "insert_after": "sa_blade_angle",
+    "label": "SA: Number of Poles",
+    "options": "2\n4\n6\n8"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_smoke_rating",
+    "fieldtype": "Select",
+    "insert_after": "sa_num_poles",
+    "label": "SA: Smoke Rating",
+    "options": "\nB\nF"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_weight_kg",
+    "fieldtype": "Float",
+    "insert_after": "sa_smoke_rating",
+    "label": "SA: Approx. Weight (kg)"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_article_no",
+    "fieldtype": "Data",
+    "insert_after": "sa_weight_kg",
+    "label": "SA: Article No. (Systemair)"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_product_family",
+    "fieldtype": "Data",
+    "insert_after": "sa_article_no",
+    "label": "SA: Product Family"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Item",
+    "fieldname": "sa_primary_factory",
+    "fieldtype": "Data",
+    "insert_after": "sa_product_family",
+    "label": "SA: Primary Factory"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_pricing_section",
+    "fieldtype": "Section Break",
+    "insert_after": "items",
+    "label": "SystemAir Configuration"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "is_systemair_quotation",
+    "fieldtype": "Check",
+    "insert_after": "sa_pricing_section",
+    "label": "Is SystemAir Quotation"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_project_ref",
+    "fieldtype": "Data",
+    "insert_after": "is_systemair_quotation",
+    "label": "Project Reference"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_eur_egp_rate",
+    "fieldtype": "Float",
+    "insert_after": "sa_project_ref",
+    "label": "EUR/EGP Exchange Rate"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_default_customs",
+    "fieldtype": "Percent",
+    "insert_after": "sa_eur_egp_rate",
+    "label": "Default Customs Duty %"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_default_discount",
+    "fieldtype": "Percent",
+    "insert_after": "sa_default_customs",
+    "label": "Default Supplier Discount %"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_additional_discount",
+    "fieldtype": "Percent",
+    "insert_after": "sa_default_discount",
+    "label": "Default Additional Discount %"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_default_margin",
+    "fieldtype": "Percent",
+    "insert_after": "sa_additional_discount",
+    "label": "Default Margin %"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_shipping_rate",
+    "fieldtype": "Percent",
+    "insert_after": "sa_default_margin",
+    "label": "Shipping Rate %"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_total_cif_eur",
+    "fieldtype": "Currency",
+    "insert_after": "sa_shipping_rate",
+    "label": "Total CIF (EUR)",
+    "read_only": 1
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_grand_total_egp",
+    "fieldtype": "Currency",
+    "insert_after": "sa_total_cif_eur",
+    "label": "Grand Total (EGP)",
+    "read_only": 1
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_effective_margin",
+    "fieldtype": "Percent",
+    "insert_after": "sa_grand_total_egp",
+    "label": "Effective Margin %",
+    "read_only": 1
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_items",
+    "fieldtype": "Table",
+    "insert_after": "sa_effective_margin",
+    "label": "SystemAir Items",
+    "options": "SystemAir Quotation Item"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Quotation",
+    "fieldname": "sa_accessories",
+    "fieldtype": "Table",
+    "insert_after": "sa_items",
+    "label": "SystemAir Accessories",
+    "options": "SystemAir Accessory Item"
+  }
+]

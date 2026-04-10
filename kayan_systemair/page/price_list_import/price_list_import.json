@@ -1,0 +1,18 @@
+{
+ "creation": "2026-04-10 10:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "modified": "2026-04-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "price-list-import",
+ "owner": "Administrator",
+ "page_name": "price-list-import",
+ "roles": [
+  {
+   "role": "SystemAir Admin"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Price List Import"
+}

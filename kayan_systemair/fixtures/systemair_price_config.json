@@ -1,0 +1,13 @@
+[
+  {
+    "doctype": "SystemAir Price Config",
+    "vat_rate": 14.0,
+    "cost_factor_1": 1.05,
+    "cost_factor_2": 1.07,
+    "combined_cost_factor": 1.1235,
+    "default_shipping_rate": 12.0,
+    "default_margin": 50.0,
+    "default_currency_rate": 50.0,
+    "default_customs_rate": 0.0
+  }
+]

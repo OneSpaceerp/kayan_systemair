@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "creation": "2026-04-10 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "price_list",
+  "sheet_name",
+  "imported_by",
+  "records_created",
+  "records_updated",
+  "records_skipped",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "price_list",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Price List",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "sheet_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sheet Name"
+  },
+  {
+   "fieldname": "imported_by",
+   "fieldtype": "Link",
+   "label": "Imported By",
+   "options": "User"
+  },
+  {
+   "fieldname": "records_created",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Records Created"
+  },
+  {
+   "fieldname": "records_updated",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Records Updated"
+  },
+  {
+   "fieldname": "records_skipped",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Records Skipped"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nCompleted\nFailed"
+  }
+ ],
+ "modified": "2026-04-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Import Log",
+ "naming_rule": "Autoincrement",
+ "autoname": "autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales Manager",
+   "share": 1,
+   "write": 0
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Admin",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

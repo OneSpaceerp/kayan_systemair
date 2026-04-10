@@ -1,0 +1,20 @@
+[project]
+name = "kayan_systemair"
+authors = [{ name = "Kayan for Import" }]
+description = "SystemAir Fan Sales Module for ERPNext v16"
+requires-python = ">=3.11"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    "frappe",
+    "openpyxl>=3.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/kayan-erp/kayan_systemair"
+
+[tool.flit.metadata]
+module = "kayan_systemair"
+
+[tool.bench.dev-dependencies]
+frappe = ">=16.0.0"

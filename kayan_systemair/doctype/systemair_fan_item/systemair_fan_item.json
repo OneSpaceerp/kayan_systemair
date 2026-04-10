@@ -1,0 +1,255 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "SA-ITEM-.YYYY.-.####",
+ "creation": "2026-04-10 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_a",
+  "fan_model",
+  "nominal_diameter",
+  "num_blades",
+  "blade_angle",
+  "num_poles",
+  "smoke_rating",
+  "section_b",
+  "guide_vane",
+  "plus_impeller",
+  "medium_casing",
+  "reversible",
+  "config_suffix",
+  "section_c",
+  "model_code",
+  "item_exists",
+  "erp_item",
+  "germany_price",
+  "malaysia_price",
+  "product_group",
+  "primary_factory",
+  "approx_weight",
+  "section_d",
+  "airflow_ls",
+  "esp_pa",
+  "input_power_kw",
+  "speed_rpm",
+  "fan_type_desc",
+  "origin"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_a",
+   "fieldtype": "Section Break",
+   "label": "Fan Model Attributes"
+  },
+  {
+   "fieldname": "fan_model",
+   "fieldtype": "Select",
+   "label": "Axial Fan Model",
+   "options": "AXC\nAXR\nAXS\nAXCP\nAXCPV\nAJR\nAJ8\nDVAX",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nominal_diameter",
+   "fieldtype": "Select",
+   "label": "Nominal Fan Diameter (mm)",
+   "options": "315\n355\n400\n450\n500\n560\n630\n710\n800\n900\n1000\n1120\n1250\n1400\n1600",
+   "reqd": 1
+  },
+  {
+   "fieldname": "num_blades",
+   "fieldtype": "Int",
+   "label": "Number of Blades",
+   "reqd": 1
+  },
+  {
+   "fieldname": "blade_angle",
+   "fieldtype": "Data",
+   "label": "Blade Angle (\u00b0)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "num_poles",
+   "fieldtype": "Select",
+   "label": "Number of Poles",
+   "options": "2\n4\n6\n8",
+   "reqd": 1
+  },
+  {
+   "fieldname": "smoke_rating",
+   "fieldtype": "Select",
+   "label": "Smoke Rating",
+   "options": "None\nB\nF"
+  },
+  {
+   "fieldname": "section_b",
+   "fieldtype": "Section Break",
+   "label": "Optional Suffixes"
+  },
+  {
+   "fieldname": "guide_vane",
+   "fieldtype": "Check",
+   "label": "Guide Vane (PV)"
+  },
+  {
+   "fieldname": "plus_impeller",
+   "fieldtype": "Check",
+   "label": "Plus / New Impeller"
+  },
+  {
+   "fieldname": "medium_casing",
+   "fieldtype": "Check",
+   "label": "Medium Casing (MC)"
+  },
+  {
+   "fieldname": "reversible",
+   "fieldtype": "Check",
+   "label": "Reversible (TR)"
+  },
+  {
+   "default": "None",
+   "fieldname": "config_suffix",
+   "fieldtype": "Select",
+   "label": "Configuration Suffix",
+   "options": "None\n-G\n-B\n-A\n-P"
+  },
+  {
+   "fieldname": "section_c",
+   "fieldtype": "Section Break",
+   "label": "Auto-Generated & Lookup Fields"
+  },
+  {
+   "fieldname": "model_code",
+   "fieldtype": "Data",
+   "label": "Generated Model Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_exists",
+   "fieldtype": "Check",
+   "label": "Item Already Exists",
+   "read_only": 1
+  },
+  {
+   "fieldname": "erp_item",
+   "fieldtype": "Link",
+   "label": "Existing ERPNext Item",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "germany_price",
+   "fieldtype": "Currency",
+   "label": "Germany List Price (EUR)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "malaysia_price",
+   "fieldtype": "Currency",
+   "label": "Malaysia List Price (EUR)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "product_group",
+   "fieldtype": "Data",
+   "label": "Fan Family / Product Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "primary_factory",
+   "fieldtype": "Data",
+   "label": "Primary Factory",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approx_weight",
+   "fieldtype": "Float",
+   "label": "Approx. Weight (kg)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_d",
+   "fieldtype": "Section Break",
+   "label": "Technical Performance Data"
+  },
+  {
+   "fieldname": "airflow_ls",
+   "fieldtype": "Float",
+   "label": "Airflow (l/s)"
+  },
+  {
+   "fieldname": "esp_pa",
+   "fieldtype": "Float",
+   "label": "ESP (Pa)"
+  },
+  {
+   "fieldname": "input_power_kw",
+   "fieldtype": "Float",
+   "label": "Input Power (kW)"
+  },
+  {
+   "fieldname": "speed_rpm",
+   "fieldtype": "Int",
+   "label": "Speed (rpm)"
+  },
+  {
+   "fieldname": "fan_type_desc",
+   "fieldtype": "Data",
+   "label": "Fan Type Description"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Data",
+   "label": "Origin"
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Fan Item",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Admin",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

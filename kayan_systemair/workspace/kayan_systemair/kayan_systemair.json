@@ -1,0 +1,30 @@
+{
+  "charts": [],
+  "content": "[{\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"SystemAir\",\"col\":12}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<h2>Quotations</h2>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New SA Quotation\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SA Fan Item\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Price List Import\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Price Config\",\"col\":3}}]",
+  "doctype": "Workspace",
+  "extends": "",
+  "extends_another_page": 0,
+  "hide_custom": 0,
+  "icon": "fan",
+  "is_hidden": 0,
+  "label": "SystemAir",
+  "module": "kayan_systemair",
+  "name": "SystemAir",
+  "onboarding": "SystemAir",
+  "parent_page": "",
+  "public": 1,
+  "restrict_to_domain": "",
+  "roles": [
+    {"role": "SystemAir Sales User"},
+    {"role": "SystemAir Sales Manager"},
+    {"role": "SystemAir Admin"}
+  ],
+  "shortcuts": [
+    {"label": "New SA Quotation",   "type": "DocType", "doc_view": "new", "link_to": "Quotation"},
+    {"label": "SA Fan Item",        "type": "DocType", "link_to": "SystemAir Fan Item"},
+    {"label": "Price List Import",  "type": "Page",    "link_to": "price-list-import"},
+    {"label": "Price Config",       "type": "DocType", "link_to": "SystemAir Price Config"},
+    {"label": "Quotation Summary",  "type": "Report",  "link_to": "SystemAir Quotation Summary"},
+    {"label": "Margin Analysis",    "type": "Report",  "link_to": "Margin Analysis"}
+  ]
+}

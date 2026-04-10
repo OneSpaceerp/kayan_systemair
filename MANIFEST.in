@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include kayan_systemair *.css
+recursive-include kayan_systemair *.csv
+recursive-include kayan_systemair *.html
+recursive-include kayan_systemair *.ico
+recursive-include kayan_systemair *.js
+recursive-include kayan_systemair *.json
+recursive-include kayan_systemair *.md
+recursive-include kayan_systemair *.png
+recursive-include kayan_systemair *.py
+recursive-include kayan_systemair *.svg
+recursive-include kayan_systemair *.txt
+recursive-exclude kayan_systemair *.pyc

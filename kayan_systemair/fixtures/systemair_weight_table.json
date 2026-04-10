@@ -1,0 +1,17 @@
+[
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 315,  "min_weight_kg": 40,  "max_weight_kg": 57},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 355,  "min_weight_kg": 40,  "max_weight_kg": 57},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 400,  "min_weight_kg": 45,  "max_weight_kg": 62},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 450,  "min_weight_kg": 52,  "max_weight_kg": 84},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 500,  "min_weight_kg": 52,  "max_weight_kg": 107},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 560,  "min_weight_kg": 58,  "max_weight_kg": 112},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 630,  "min_weight_kg": 93,  "max_weight_kg": 160},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 710,  "min_weight_kg": 100, "max_weight_kg": 200},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 800,  "min_weight_kg": 100, "max_weight_kg": 287},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 900,  "min_weight_kg": 163, "max_weight_kg": 343},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 1000, "min_weight_kg": 100, "max_weight_kg": 287},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 1120, "min_weight_kg": 281, "max_weight_kg": 557},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 1250, "min_weight_kg": 336, "max_weight_kg": 667},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 1400, "min_weight_kg": 511, "max_weight_kg": 778},
+  {"doctype": "SystemAir Weight Table", "nominal_diameter": 1600, "min_weight_kg": 545, "max_weight_kg": 1792}
+]

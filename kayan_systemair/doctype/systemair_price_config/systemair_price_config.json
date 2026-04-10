@@ -1,0 +1,105 @@
+{
+ "actions": [],
+ "creation": "2026-04-10 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "vat_rate",
+  "cost_factor_1",
+  "cost_factor_2",
+  "combined_cost_factor",
+  "default_shipping_rate",
+  "default_margin",
+  "default_currency_rate",
+  "default_customs_rate"
+ ],
+ "fields": [
+  {
+   "default": "14",
+   "fieldname": "vat_rate",
+   "fieldtype": "Percent",
+   "label": "VAT Rate (%)"
+  },
+  {
+   "default": "1.05",
+   "fieldname": "cost_factor_1",
+   "fieldtype": "Float",
+   "label": "Cost Factor 1 (Overhead)"
+  },
+  {
+   "default": "1.07",
+   "fieldname": "cost_factor_2",
+   "fieldtype": "Float",
+   "label": "Cost Factor 2 (Finance)"
+  },
+  {
+   "default": "1.1235",
+   "fieldname": "combined_cost_factor",
+   "fieldtype": "Float",
+   "label": "Combined Cost Factor",
+   "read_only": 1
+  },
+  {
+   "default": "12",
+   "fieldname": "default_shipping_rate",
+   "fieldtype": "Percent",
+   "label": "Default Shipping Rate (%)"
+  },
+  {
+   "default": "50",
+   "fieldname": "default_margin",
+   "fieldtype": "Percent",
+   "label": "Default Margin %"
+  },
+  {
+   "default": "50",
+   "fieldname": "default_currency_rate",
+   "fieldtype": "Float",
+   "label": "Default EUR\u2192EGP Rate"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_customs_rate",
+   "fieldtype": "Percent",
+   "label": "Default Customs Duty Rate (%)"
+  }
+ ],
+ "issingle": 1,
+ "modified": "2026-04-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Price Config",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "SystemAir Sales User",
+   "share": 1,
+   "write": 0
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "SystemAir Sales Manager",
+   "share": 1,
+   "write": 0
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "SystemAir Admin",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

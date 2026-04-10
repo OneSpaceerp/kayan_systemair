@@ -1,0 +1,157 @@
+<style>
+    .sa-print { font-family: 'Inter', sans-serif; font-size: 12px; }
+    .sa-header { text-align: center; margin-bottom: 20px; }
+    .sa-header h2 { font-weight: bold; margin: 0; }
+    .sa-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .sa-table th, .sa-table td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+    .sa-table th { background-color: #f8f9fa; font-weight: bold; }
+    .sa-summary { width: 40%; float: right; border-collapse: collapse; }
+    .sa-summary th, .sa-summary td { padding: 4px; border: 1px solid #ddd; }
+    .sa-clear { clear: both; }
+    .sa-footer { margin-top: 40px; font-size: 10px; text-align: center; color: #555; }
+    .sa-internal { margin-top: 50px; background-color: #fcfcfc; padding: 15px; border: 1px dashed #ccc; }
+</style>
+
+<div class="sa-print">
+    <!-- Header -->
+    <div class="sa-header">
+        <h2>QUOTATION</h2>
+        <p><strong>No:</strong> {{ doc.name }} | <strong>Date:</strong> {{ doc.get_formatted("transaction_date") }}</p>
+    </div>
+
+    <!-- Customer Details -->
+    <div style="margin-bottom: 20px;">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 50%;">
+                    <strong>To:</strong> {{ doc.customer_name }}<br>
+                    <strong>Address:</strong> {{ doc.address_display or "" }}<br>
+                </td>
+                <td style="width: 50%; text-align: right;">
+                    <strong>Project:</strong> {{ doc.sa_project_ref or "" }}<br>
+                    <strong>Validity:</strong> 30 Days<br>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Main Items Table -->
+    {% if doc.sa_items %}
+    <h4>SystemAir Fans</h4>
+    <table class="sa-table">
+        <thead>
+            <tr>
+                <th>SN / Tag</th>
+                <th>Model</th>
+                <th>Type</th>
+                <th>Flow (l/s)</th>
+                <th>ESP (Pa)</th>
+                <th>Qty</th>
+                <th>Unit Price (EGP)</th>
+                <th>Total (EGP)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.sa_items %}
+            <tr>
+                <td>{{ row.sa_sn or "" }} <br> {{ row.location or "" }}</td>
+                <td>{{ row.item_code }}</td>
+                <td>{{ row.fan_type or "" }}<br>{{ row.smoke_rating or "" }}</td>
+                <td>{{ row.airflow_ls }}</td>
+                <td>{{ row.esp_pa }}</td>
+                <td>{{ row.qty }}</td>
+                <td>{{ row.get_formatted("unit_price_egp") }}</td>
+                <td>{{ row.get_formatted("total_price_egp") }}</td>
+            </tr>
+            {% endhof %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Accessories Table -->
+    {% if doc.sa_accessories %}
+    <h4>Accessories</h4>
+    <table class="sa-table">
+        <thead>
+            <tr>
+                <th>Article No.</th>
+                <th>Accessory Name</th>
+                <th>Qty</th>
+                <th>Total (EGP)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in doc.sa_accessories %}
+            <tr>
+                <td>{{ row.sa_article_no }}</td>
+                <td>{{ row.accessory_name or row.item_name }}</td>
+                <td>{{ row.qty }}</td>
+                <td>{{ row.get_formatted("total_price_egp") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Summary Box -->
+    <table class="sa-summary">
+        <tr>
+            <th>Total CIF (EUR)</th>
+            <td style="text-align: right;">{{ doc.get_formatted("sa_total_cif_eur") }}</td>
+        </tr>
+        <tr>
+            <th>Grand Total (EGP)</th>
+            <td style="text-align: right;"><strong>{{ doc.get_formatted("sa_grand_total_egp") }}</strong></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="font-size: 9px; text-align: right;">
+                Exch. Rate: {{ doc.sa_eur_egp_rate }} | Includes 14% VAT
+            </td>
+        </tr>
+    </table>
+    <div class="sa-clear"></div>
+
+    <!-- Internal Breakdown -->
+    {% if frappe.form_dict.print_internal %}
+    <div class="sa-internal">
+        <h4 style="color: red;">INTERNAL PRICING BREAKDOWN</h4>
+        <table class="sa-table" style="font-size: 10px;">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>EX Price (\u20ac)</th>
+                    <th>Disc 1%</th>
+                    <th>Basic EX (\u20ac)</th>
+                    <th>Disc 2%</th>
+                    <th>Ship (\u20ac)</th>
+                    <th>CIF (\u20ac)</th>
+                    <th>Customs%</th>
+                    <th>Margin%</th>
+                    <th>Total (EGP)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in doc.sa_items %}
+                <tr>
+                    <td>{{ row.item_code }}</td>
+                    <td>{{ row.ex_price }}</td>
+                    <td>{{ row.supplier_discount }}%</td>
+                    <td>{{ row.basic_ex_price }}</td>
+                    <td>{{ row.additional_discount }}%</td>
+                    <td>{{ row.shipping_cost }}</td>
+                    <td>{{ row.cif }}</td>
+                    <td>{{ row.customs_rate }}%</td>
+                    <td>{{ row.margin_percent }}%</td>
+                    <td>{{ row.total_price_egp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="sa-footer">
+        Subject to standard terms and conditions of Kayan for Import.<br>
+        Authorized Signature
+    </div>
+</div>

@@ -1,0 +1,30 @@
+[
+  {
+    "doctype": "Workflow",
+    "workflow_name": "SystemAir Quotation Workflow",
+    "document_type": "Quotation",
+    "is_active": 1,
+    "override_status": 1,
+    "condition": "doc.is_systemair_quotation == 1",
+    "states": [
+      {"state": "Draft", "allow_edit": "SystemAir Sales User", "update_field": "", "update_value": ""},
+      {"state": "Pending Review", "allow_edit": "SystemAir Sales Manager", "update_field": "", "update_value": ""},
+      {"state": "Approved", "allow_edit": "SystemAir Sales Manager", "update_field": "", "update_value": ""},
+      {"state": "Sent to Customer", "allow_edit": "SystemAir Sales User", "update_field": "", "update_value": ""},
+      {"state": "Order Received", "allow_edit": "SystemAir Sales User", "update_field": "", "update_value": ""},
+      {"state": "Lost", "allow_edit": "SystemAir Sales User", "update_field": "", "update_value": ""},
+      {"state": "Cancelled", "allow_edit": "SystemAir Sales Manager", "update_field": "", "update_value": ""}
+    ],
+    "transitions": [
+      {"state": "Draft",            "action": "Submit for Review", "next_state": "Pending Review",   "allowed": "SystemAir Sales User"},
+      {"state": "Pending Review",   "action": "Approve",           "next_state": "Approved",         "allowed": "SystemAir Sales Manager"},
+      {"state": "Pending Review",   "action": "Reject",            "next_state": "Draft",            "allowed": "SystemAir Sales Manager"},
+      {"state": "Approved",         "action": "Mark Sent",         "next_state": "Sent to Customer", "allowed": "SystemAir Sales User"},
+      {"state": "Sent to Customer", "action": "Mark Won",          "next_state": "Order Received",   "allowed": "SystemAir Sales User"},
+      {"state": "Sent to Customer", "action": "Mark Lost",         "next_state": "Lost",             "allowed": "SystemAir Sales User"},
+      {"state": "Draft",            "action": "Cancel",            "next_state": "Cancelled",        "allowed": "SystemAir Sales Manager"},
+      {"state": "Pending Review",   "action": "Cancel",            "next_state": "Cancelled",        "allowed": "SystemAir Sales Manager"},
+      {"state": "Approved",         "action": "Cancel",            "next_state": "Cancelled",        "allowed": "SystemAir Sales Manager"}
+    ]
+  }
+]

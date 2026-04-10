@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "creation": "2026-04-10 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "nominal_diameter",
+  "min_weight_kg",
+  "max_weight_kg"
+ ],
+ "fields": [
+  {
+   "fieldname": "nominal_diameter",
+   "fieldtype": "Int",
+   "label": "Nominal Diameter (mm)",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "min_weight_kg",
+   "fieldtype": "Float",
+   "label": "Min Weight (kg)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "max_weight_kg",
+   "fieldtype": "Float",
+   "label": "Max Weight (kg)",
+   "reqd": 1
+  }
+ ],
+ "modified": "2026-04-10 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Weight Table",
+ "naming_rule": "By fieldname",
+ "autoname": "field:nominal_diameter",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales User",
+   "share": 1,
+   "write": 0
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales Manager",
+   "share": 1,
+   "write": 0
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Admin",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
