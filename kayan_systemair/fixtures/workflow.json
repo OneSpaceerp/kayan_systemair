@@ -4,6 +4,7 @@
     "doctype": "Workflow",
     "workflow_name": "SystemAir Quotation Workflow",
     "document_type": "Quotation",
+    "workflow_state_field": "workflow_state",
     "is_active": 1,
     "override_status": 1,
     "condition": "doc.is_systemair_quotation == 1",
