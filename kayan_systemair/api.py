@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from kayan_systemair.doctype.systemair_quotation_item.pricing_engine import get_list_price
+from kayan_systemair.kayan_systemair.doctype.systemair_quotation_item.pricing_engine import get_list_price
 
 @frappe.whitelist()
 def get_item_prices(item_code):

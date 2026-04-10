@@ -1,6 +1,6 @@
 import frappe
 import unittest
-from kayan_systemair.doctype.systemair_quotation_item.pricing_engine import compute_pricing
+from kayan_systemair.kayan_systemair.doctype.systemair_quotation_item.pricing_engine import compute_pricing
 
 class TestPricingEngine(unittest.TestCase):
 

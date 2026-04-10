@@ -1,5 +1,5 @@
 import frappe
-from kayan_systemair.doctype.systemair_quotation_item.pricing_engine import compute_pricing
+from kayan_systemair.kayan_systemair.doctype.systemair_quotation_item.pricing_engine import compute_pricing
 
 def before_save(doc, method):
     """Triggered by hooks.py for every Quotation save."""
