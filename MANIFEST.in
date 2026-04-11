@@ -1,0 +1,9 @@
+include kayan_systemair/templates/*.html
+recursive-include kayan_systemair/public *
+recursive-include kayan_systemair/templates *
+recursive-include kayan_systemair/kayan_systemair/doctype *.json *.js *.html
+recursive-include kayan_systemair/kayan_systemair/page *.json *.js *.html
+recursive-include kayan_systemair/kayan_systemair/report *.json *.sql *.py
+recursive-include kayan_systemair/kayan_systemair/workspace *.json
+recursive-include kayan_systemair/fixtures *.json
+recursive-include kayan_systemair/print_format *.json *.html

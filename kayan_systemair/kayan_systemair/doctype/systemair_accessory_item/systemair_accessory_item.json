@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "field_order": [
+  "sa_article_no",
+  "item_code",
+  "accessory_name",
+  "qty",
+  "unit_price_eur",
+  "total_price_egp"
+ ],
+ "fields": [
+  {
+   "fieldname": "sa_article_no",
+   "fieldtype": "Data",
+   "label": "Article No."
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "accessory_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Accessory Name"
+  },
+  {
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Qty",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "unit_price_eur",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Unit Price (EUR)",
+   "options": "EUR",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_price_egp",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Price (EGP)",
+   "options": "EGP",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Accessory Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

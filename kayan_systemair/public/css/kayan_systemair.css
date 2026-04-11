@@ -1,0 +1,93 @@
+/**
+ * kayan_systemair.css
+ * ====================
+ * Global CSS for the kayan_systemair application.
+ * Loaded on every desk page via app_include_css in hooks.py.
+ */
+
+/* ===================================================================
+   Margin colour indicators for the sa_items child table grid
+   =================================================================== */
+.margin-green {
+  color: #38a169 !important;
+  font-weight: 600;
+}
+
+.margin-orange {
+  color: #dd6b20 !important;
+  font-weight: 600;
+}
+
+.margin-red {
+  color: #e53e3e !important;
+  font-weight: 700;
+}
+
+/* ===================================================================
+   SystemAir Quotation section styling
+   =================================================================== */
+
+/* Highlight SA-specific sections on the Quotation form */
+.sa-section-header {
+  background: #ebf4ff;
+  border-left: 4px solid #1a73e8;
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  border-radius: 0 4px 4px 0;
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+/* Exchange rate field — make it visually prominent */
+[data-fieldname="sa_eur_egp_rate"] .control-label {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+/* Grand total highlight */
+[data-fieldname="sa_grand_total_egp"] input {
+  font-weight: 700 !important;
+  font-size: 1.05em !important;
+  color: #1a73e8 !important;
+}
+
+/* Effective margin colour based on value */
+[data-fieldname="sa_effective_margin"] input {
+  font-weight: 600;
+}
+
+/* ===================================================================
+   Price List Import page
+   =================================================================== */
+.sa-import-page .card {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.sa-import-page .alert {
+  border-radius: 6px;
+}
+
+/* ===================================================================
+   SystemAir Fan Item form
+   =================================================================== */
+/* Read-only model code field — prominent display */
+[data-fieldname="model_code"] input {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1em;
+  font-weight: 700;
+  color: #1a73e8;
+  background: #f0f6ff;
+  border-color: #1a73e8;
+}
+
+/* ===================================================================
+   Print format styles (referenced inline in Jinja template)
+   These CSS classes are also defined inline in the HTML template
+   to ensure they work in WeasyPrint/print contexts.
+   =================================================================== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

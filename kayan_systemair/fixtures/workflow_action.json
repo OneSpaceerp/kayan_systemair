@@ -1,0 +1,37 @@
+[
+  {
+    "doctype": "Workflow Action Master",
+    "name": "Submit for Review",
+    "workflow_action_name": "Submit for Review"
+  },
+  {
+    "doctype": "Workflow Action Master",
+    "name": "Approve",
+    "workflow_action_name": "Approve"
+  },
+  {
+    "doctype": "Workflow Action Master",
+    "name": "Reject",
+    "workflow_action_name": "Reject"
+  },
+  {
+    "doctype": "Workflow Action Master",
+    "name": "Mark Sent",
+    "workflow_action_name": "Mark Sent"
+  },
+  {
+    "doctype": "Workflow Action Master",
+    "name": "Mark Won",
+    "workflow_action_name": "Mark Won"
+  },
+  {
+    "doctype": "Workflow Action Master",
+    "name": "Mark Lost",
+    "workflow_action_name": "Mark Lost"
+  },
+  {
+    "doctype": "Workflow Action Master",
+    "name": "SA Cancel",
+    "workflow_action_name": "SA Cancel"
+  }
+]

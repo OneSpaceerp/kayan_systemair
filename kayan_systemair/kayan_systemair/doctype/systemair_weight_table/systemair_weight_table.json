@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "autoname": "field:nominal_diameter",
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "field_order": [
+  "nominal_diameter",
+  "min_weight_kg",
+  "max_weight_kg"
+ ],
+ "fields": [
+  {
+   "description": "Fan nominal diameter in millimetres",
+   "fieldname": "nominal_diameter",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Nominal Diameter (mm)",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Minimum approximate weight for fans of this diameter (kg)",
+   "fieldname": "min_weight_kg",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Min Weight (kg)",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "description": "Maximum approximate weight for fans of this diameter (kg)",
+   "fieldname": "max_weight_kg",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Max Weight (kg)",
+   "precision": "2",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Weight Table",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 0,
+   "delete": 0,
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales User",
+   "write": 0
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Sales Manager",
+   "write": 0
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "SystemAir Admin",
+   "write": 1
+  }
+ ],
+ "sort_field": "nominal_diameter",
+ "sort_order": "ASC",
+ "track_changes": 1
+}

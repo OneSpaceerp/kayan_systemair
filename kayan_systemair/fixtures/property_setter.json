@@ -1,0 +1,10 @@
+[
+  {
+    "doctype": "Property Setter",
+    "doc_type": "Quotation",
+    "field_name": "items",
+    "property": "hidden",
+    "value": "0",
+    "property_type": "Check"
+  }
+]

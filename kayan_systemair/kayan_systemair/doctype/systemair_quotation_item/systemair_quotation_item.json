@@ -1,0 +1,252 @@
+{
+ "actions": [],
+ "creation": "2026-04-11 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "field_order": [
+  "sa_sn",
+  "location",
+  "fan_type",
+  "speed_type",
+  "smoke_rating",
+  "sa_article_no",
+  "item_code",
+  "item_name",
+  "airflow_ls",
+  "esp_pa",
+  "qty",
+  "germany_list_price",
+  "malaysia_list_price",
+  "ex_price",
+  "supplier_discount",
+  "additional_discount",
+  "customs_rate",
+  "margin_percent",
+  "approx_weight_kg",
+  "section_pricing",
+  "basic_ex_price",
+  "shipping_cost",
+  "final_ex_price",
+  "cif",
+  "ddp_cost",
+  "unit_price_egp",
+  "total_price_egp",
+  "rate",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "sa_sn",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fan Reference (SN)"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Location / Tag"
+  },
+  {
+   "fieldname": "fan_type",
+   "fieldtype": "Select",
+   "label": "Fan Type",
+   "options": "\nAXC\nAXR\nAXS\nAXCP\nAXCPV\nAJR\nAJ8\nDVAX"
+  },
+  {
+   "fieldname": "speed_type",
+   "fieldtype": "Select",
+   "label": "Speed",
+   "options": "\nSingle Speed\nTwo Speed\nVFD"
+  },
+  {
+   "fieldname": "smoke_rating",
+   "fieldtype": "Select",
+   "label": "Smoke Rating",
+   "options": "\nNone\nB\nF"
+  },
+  {
+   "fieldname": "sa_article_no",
+   "fieldtype": "Data",
+   "label": "Article No."
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Model (Item)",
+   "options": "Item"
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "airflow_ls",
+   "fieldtype": "Float",
+   "label": "Airflow (l/s)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "esp_pa",
+   "fieldtype": "Float",
+   "label": "ESP (Pa)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Qty",
+   "precision": "2",
+   "reqd": 1,
+   "default": "1"
+  },
+  {
+   "fieldname": "germany_list_price",
+   "fieldtype": "Currency",
+   "label": "Germany List Price (EUR)",
+   "options": "EUR",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "malaysia_list_price",
+   "fieldtype": "Currency",
+   "label": "Malaysia List Price (EUR)",
+   "options": "EUR",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ex_price",
+   "fieldtype": "Currency",
+   "label": "EX Price (EUR)",
+   "options": "EUR",
+   "precision": "2"
+  },
+  {
+   "fieldname": "supplier_discount",
+   "fieldtype": "Percent",
+   "label": "Supplier Discount %",
+   "precision": "2"
+  },
+  {
+   "fieldname": "additional_discount",
+   "fieldtype": "Percent",
+   "label": "Additional Discount %",
+   "precision": "2"
+  },
+  {
+   "fieldname": "customs_rate",
+   "fieldtype": "Percent",
+   "label": "Customs Duty %",
+   "precision": "2"
+  },
+  {
+   "fieldname": "margin_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Margin % (MG)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "approx_weight_kg",
+   "fieldtype": "Float",
+   "label": "Approx. Weight (kg)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_pricing",
+   "fieldtype": "Section Break",
+   "label": "Pricing Breakdown"
+  },
+  {
+   "fieldname": "basic_ex_price",
+   "fieldtype": "Currency",
+   "label": "Basic EX Price (EUR)",
+   "options": "EUR",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "shipping_cost",
+   "fieldtype": "Currency",
+   "label": "Shipping Cost (EUR)",
+   "options": "EUR",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "final_ex_price",
+   "fieldtype": "Currency",
+   "label": "Final EX Price (EUR)",
+   "options": "EUR",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cif",
+   "fieldtype": "Currency",
+   "label": "CIF (EUR)",
+   "options": "EUR",
+   "precision": "4",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ddp_cost",
+   "fieldtype": "Currency",
+   "label": "DDP Cost (EGP)",
+   "options": "EGP",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unit_price_egp",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Unit Price (EGP)",
+   "options": "EGP",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_price_egp",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Price (EGP)",
+   "options": "EGP",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Rate",
+   "options": "EGP",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "options": "EGP",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kayan_systemair",
+ "name": "SystemAir Quotation Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

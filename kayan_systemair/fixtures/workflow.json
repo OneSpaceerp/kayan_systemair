@@ -1,0 +1,150 @@
+[
+  {
+    "doctype": "Workflow",
+    "name": "SystemAir Quotation Workflow",
+    "document_type": "Quotation",
+    "workflow_name": "SystemAir Quotation Workflow",
+    "is_active": 1,
+    "override_status": 0,
+    "send_email_alert": 0,
+    "states": [
+      {
+        "state": "Draft",
+        "doc_status": "0",
+        "allow_edit": "SystemAir Sales User",
+        "is_optional_state": 0,
+        "workflow_state_name": "Draft",
+        "update_field": "status",
+        "update_value": "Open"
+      },
+      {
+        "state": "Pending Review",
+        "doc_status": "0",
+        "allow_edit": "SystemAir Sales User",
+        "is_optional_state": 0,
+        "workflow_state_name": "Pending Review",
+        "update_field": "status",
+        "update_value": "Open"
+      },
+      {
+        "state": "Approved",
+        "doc_status": "0",
+        "allow_edit": "SystemAir Sales Manager",
+        "is_optional_state": 0,
+        "workflow_state_name": "Approved",
+        "update_field": "status",
+        "update_value": "Open"
+      },
+      {
+        "state": "Sent to Customer",
+        "doc_status": "0",
+        "allow_edit": "",
+        "is_optional_state": 0,
+        "workflow_state_name": "Sent to Customer",
+        "update_field": "status",
+        "update_value": "Open"
+      },
+      {
+        "state": "Order Received",
+        "doc_status": "0",
+        "allow_edit": "",
+        "is_optional_state": 0,
+        "workflow_state_name": "Order Received",
+        "update_field": "status",
+        "update_value": "Ordered"
+      },
+      {
+        "state": "Lost",
+        "doc_status": "0",
+        "allow_edit": "",
+        "is_optional_state": 0,
+        "workflow_state_name": "Lost",
+        "update_field": "status",
+        "update_value": "Lost"
+      },
+      {
+        "state": "Cancelled",
+        "doc_status": "0",
+        "allow_edit": "",
+        "is_optional_state": 0,
+        "workflow_state_name": "Cancelled",
+        "update_field": "status",
+        "update_value": "Cancelled"
+      }
+    ],
+    "transitions": [
+      {
+        "state": "Draft",
+        "action": "Submit for Review",
+        "next_state": "Pending Review",
+        "allowed": "SystemAir Sales User",
+        "allow_self_approval": 1,
+        "condition": "doc.is_systemair_quotation == 1"
+      },
+      {
+        "state": "Pending Review",
+        "action": "Approve",
+        "next_state": "Approved",
+        "allowed": "SystemAir Sales Manager",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Pending Review",
+        "action": "Reject",
+        "next_state": "Draft",
+        "allowed": "SystemAir Sales Manager",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Approved",
+        "action": "Mark Sent",
+        "next_state": "Sent to Customer",
+        "allowed": "SystemAir Sales User",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Sent to Customer",
+        "action": "Mark Won",
+        "next_state": "Order Received",
+        "allowed": "SystemAir Sales User",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Sent to Customer",
+        "action": "Mark Lost",
+        "next_state": "Lost",
+        "allowed": "SystemAir Sales User",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Approved",
+        "action": "SA Cancel",
+        "next_state": "Cancelled",
+        "allowed": "SystemAir Sales Manager",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Pending Review",
+        "action": "SA Cancel",
+        "next_state": "Cancelled",
+        "allowed": "SystemAir Sales Manager",
+        "allow_self_approval": 1,
+        "condition": ""
+      },
+      {
+        "state": "Draft",
+        "action": "SA Cancel",
+        "next_state": "Cancelled",
+        "allowed": "SystemAir Sales Manager",
+        "allow_self_approval": 1,
+        "condition": ""
+      }
+    ]
+  }
+]

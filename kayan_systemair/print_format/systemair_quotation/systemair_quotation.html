@@ -1,0 +1,615 @@
+{%- set doc = doc -%}
+{%- set company = frappe.get_doc("Company", doc.company) if doc.company else None -%}
+{%- set config = frappe.get_single("SystemAir Price Config") -%}
+{%- set validity_days = 30 -%}
+{%- set print_internal = doc.get("print_internal") -%}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* ======================================================
+     A4 Print Format — SystemAir Quotation
+     Nest Software Development / Kayan for Import
+     ====================================================== */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 9pt;
+    color: #222;
+    line-height: 1.4;
+  }
+
+  /* ---- Header ---- */
+  .sa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #1a73e8;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+  }
+  .sa-company-info h1 {
+    font-size: 18pt;
+    color: #1a73e8;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .sa-company-info p {
+    font-size: 8pt;
+    color: #555;
+  }
+  .sa-quotation-meta {
+    text-align: right;
+  }
+  .sa-quotation-meta h2 {
+    font-size: 16pt;
+    color: #1a73e8;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .sa-quotation-meta table td {
+    font-size: 9pt;
+    padding: 2px 4px;
+  }
+  .sa-quotation-meta table td:first-child {
+    color: #666;
+    text-align: right;
+    padding-right: 8px;
+  }
+  .sa-quotation-meta table td:last-child {
+    font-weight: 600;
+  }
+
+  /* ---- Customer + Project Info ---- */
+  .sa-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .sa-info-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px 14px;
+  }
+  .sa-info-box h4 {
+    font-size: 8pt;
+    color: #1a73e8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+  .sa-info-box p {
+    font-size: 9pt;
+    margin-bottom: 3px;
+  }
+  .sa-info-box .label {
+    color: #666;
+    font-size: 8pt;
+    min-width: 80px;
+    display: inline-block;
+  }
+
+  /* ---- Items Table ---- */
+  .sa-section-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #1a73e8;
+    border-left: 4px solid #1a73e8;
+    padding-left: 8px;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+
+  table.sa-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+  table.sa-items-table th {
+    background: #1a73e8;
+    color: #fff;
+    font-size: 8pt;
+    font-weight: 600;
+    padding: 6px 7px;
+    text-align: center;
+    border: 1px solid #1a73e8;
+  }
+  table.sa-items-table td {
+    font-size: 8.5pt;
+    padding: 5px 7px;
+    border: 1px solid #d0d0d0;
+    vertical-align: middle;
+  }
+  table.sa-items-table tr:nth-child(even) td {
+    background: #f8f9ff;
+  }
+  table.sa-items-table td.num {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-size: 8.5pt;
+  }
+  table.sa-items-table td.center {
+    text-align: center;
+  }
+
+  /* ---- Accessories Table ---- */
+  table.sa-acc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+  }
+  table.sa-acc-table th {
+    background: #607d8b;
+    color: #fff;
+    font-size: 8pt;
+    padding: 5px 7px;
+    border: 1px solid #607d8b;
+  }
+  table.sa-acc-table td {
+    font-size: 8.5pt;
+    padding: 5px 7px;
+    border: 1px solid #d0d0d0;
+  }
+  table.sa-acc-table td.num {
+    text-align: right;
+  }
+
+  /* ---- Summary Box ---- */
+  .sa-summary-box {
+    float: right;
+    width: 320px;
+    border: 2px solid #1a73e8;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    background: #f8f9ff;
+  }
+  .sa-summary-box h4 {
+    font-size: 10pt;
+    color: #1a73e8;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .sa-summary-box table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .sa-summary-box table tr td {
+    font-size: 9pt;
+    padding: 3px 0;
+  }
+  .sa-summary-box table tr td:last-child {
+    text-align: right;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+  }
+  .sa-summary-box table tr.total-row td {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #1a73e8;
+    border-top: 2px solid #1a73e8;
+    padding-top: 6px;
+  }
+  .clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  /* ---- Footer ---- */
+  .sa-footer {
+    border-top: 2px solid #1a73e8;
+    padding-top: 12px;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    font-size: 8pt;
+    color: #555;
+  }
+  .sa-footer .signature-block {
+    text-align: center;
+  }
+  .sa-footer .signature-block .sig-line {
+    border-top: 1px solid #333;
+    margin-top: 30px;
+    padding-top: 4px;
+    font-size: 8pt;
+  }
+
+  /* ---- Internal Pricing Page ---- */
+  .sa-internal-page {
+    page-break-before: always;
+    margin-top: 20px;
+  }
+  .sa-internal-page h3 {
+    font-size: 12pt;
+    color: #e53e3e;
+    font-weight: 700;
+    border-bottom: 2px solid #e53e3e;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+  table.sa-pricing-breakdown {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 7.5pt;
+  }
+  table.sa-pricing-breakdown th {
+    background: #e53e3e;
+    color: #fff;
+    padding: 5px 6px;
+    border: 1px solid #e53e3e;
+    font-size: 7.5pt;
+    text-align: center;
+  }
+  table.sa-pricing-breakdown td {
+    padding: 4px 6px;
+    border: 1px solid #d0d0d0;
+    vertical-align: middle;
+  }
+  table.sa-pricing-breakdown tr:nth-child(even) td {
+    background: #fff5f5;
+  }
+  table.sa-pricing-breakdown td.num {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     SECTION 1 — HEADER
+     ================================================================ -->
+<div class="sa-header">
+  <div class="sa-company-info">
+    <h1>{{ doc.company or "Kayan for Import" }}</h1>
+    {%- if company -%}
+    <p>{{ company.address or "" }}</p>
+    <p>{{ company.phone_no or "" }}{% if company.email %} | {{ company.email }}{% endif %}</p>
+    {%- endif -%}
+    <p style="margin-top:4px; color:#1a73e8; font-size:8pt;">
+      Authorised SystemAir Representative — Egypt
+    </p>
+  </div>
+  <div class="sa-quotation-meta">
+    <h2>QUOTATION</h2>
+    <table>
+      <tr>
+        <td>Quotation No.:</td>
+        <td>{{ doc.name }}</td>
+      </tr>
+      <tr>
+        <td>Date:</td>
+        <td>{{ frappe.format(doc.transaction_date, {"fieldtype": "Date"}) }}</td>
+      </tr>
+      <tr>
+        <td>Valid Until:</td>
+        <td>{{ frappe.format(
+              frappe.utils.add_days(doc.transaction_date, validity_days),
+              {"fieldtype": "Date"}
+            ) }}
+        </td>
+      </tr>
+      <tr>
+        <td>Exchange Rate:</td>
+        <td>1 EUR = {{ frappe.format(doc.sa_eur_egp_rate or 0, {"fieldtype": "Float", "precision": 2}) }} EGP</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ================================================================
+     SECTION 2 — CUSTOMER DETAILS + PROJECT INFO
+     ================================================================ -->
+<div class="sa-info-grid">
+  <!-- Customer -->
+  <div class="sa-info-box">
+    <h4>Customer Details</h4>
+    <p><span class="label">Company:</span> <strong>{{ doc.customer_name or doc.party_name or "—" }}</strong></p>
+    {%- if doc.contact_person -%}
+    <p><span class="label">Attention:</span> {{ doc.contact_person }}</p>
+    {%- endif -%}
+    {%- if doc.contact_email -%}
+    <p><span class="label">Email:</span> {{ doc.contact_email }}</p>
+    {%- endif -%}
+    {%- if doc.contact_mobile -%}
+    <p><span class="label">Mobile:</span> {{ doc.contact_mobile }}</p>
+    {%- endif -%}
+    {%- if doc.customer_address -%}
+    <p><span class="label">Address:</span> {{ doc.customer_address }}</p>
+    {%- endif -%}
+  </div>
+
+  <!-- Project -->
+  <div class="sa-info-box">
+    <h4>Project Information</h4>
+    <p><span class="label">Subject:</span> {{ doc.title or doc.name }}</p>
+    {%- if doc.sa_project_ref -%}
+    <p><span class="label">Reference:</span> {{ doc.sa_project_ref }}</p>
+    {%- endif -%}
+    <p><span class="label">Validity:</span> {{ validity_days }} days from date of quotation</p>
+    <p><span class="label">Currency:</span> Prices in EGP (Egyptian Pound)</p>
+  </div>
+</div>
+
+<!-- ================================================================
+     SECTION 3 — ITEMS TABLE
+     ================================================================ -->
+{%- if doc.sa_items -%}
+<div class="sa-section-title">Axial Fan Schedule</div>
+<table class="sa-items-table">
+  <thead>
+    <tr>
+      <th style="width:30px;">SN</th>
+      <th>Location / Tag</th>
+      <th>Model</th>
+      <th>Fan Type</th>
+      <th>Speed</th>
+      <th>Smoke</th>
+      <th style="width:65px;">Airflow (l/s)</th>
+      <th style="width:60px;">ESP (Pa)</th>
+      <th style="width:35px;">Qty</th>
+      <th style="width:100px;">Unit Price (EGP)</th>
+      <th style="width:110px;">Total (EGP)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {%- for row in doc.sa_items -%}
+    <tr>
+      <td class="center">{{ row.idx }}</td>
+      <td>{{ row.location or "—" }}</td>
+      <td><strong>{{ row.item_code or row.item_name or "—" }}</strong></td>
+      <td class="center">{{ row.fan_type or "—" }}</td>
+      <td class="center">{{ row.speed_type or "—" }}</td>
+      <td class="center">{{ row.smoke_rating or "—" }}</td>
+      <td class="num">{{ "%.0f"|format(row.airflow_ls or 0) }}</td>
+      <td class="num">{{ "%.0f"|format(row.esp_pa or 0) }}</td>
+      <td class="center">{{ row.qty | int }}</td>
+      <td class="num">{{ frappe.format(row.unit_price_egp or 0, {"fieldtype": "Currency", "precision": 2}) }}</td>
+      <td class="num"><strong>{{ frappe.format(row.total_price_egp or 0, {"fieldtype": "Currency", "precision": 2}) }}</strong></td>
+    </tr>
+    {%- endfor -%}
+  </tbody>
+</table>
+{%- endif -%}
+
+<!-- ================================================================
+     SECTION 4 — ACCESSORIES TABLE (only if accessories exist)
+     ================================================================ -->
+{%- if doc.sa_accessories -%}
+<div class="sa-section-title">Accessories</div>
+<table class="sa-acc-table">
+  <thead>
+    <tr>
+      <th>Article No.</th>
+      <th>Description</th>
+      <th style="width:50px;">Qty</th>
+      <th style="width:110px;">Unit Price (EUR)</th>
+      <th style="width:120px;">Total (EGP)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {%- for row in doc.sa_accessories -%}
+    <tr>
+      <td>{{ row.sa_article_no or "—" }}</td>
+      <td>{{ row.accessory_name or row.item_code or "—" }}</td>
+      <td class="num">{{ row.qty | int }}</td>
+      <td class="num">{{ frappe.format(row.unit_price_eur or 0, {"fieldtype": "Currency", "precision": 2}) }}</td>
+      <td class="num"><strong>{{ frappe.format(row.total_price_egp or 0, {"fieldtype": "Currency", "precision": 2}) }}</strong></td>
+    </tr>
+    {%- endfor -%}
+  </tbody>
+</table>
+{%- endif -%}
+
+<!-- ================================================================
+     SECTION 5 — SUMMARY BOX
+     ================================================================ -->
+<div class="clearfix">
+  <div class="sa-summary-box">
+    <h4>Price Summary</h4>
+    <table>
+      <tr>
+        <td>Total CIF (EUR)</td>
+        <td>EUR {{ "%.2f"|format(doc.sa_total_cif_eur or 0) }}</td>
+      </tr>
+      <tr>
+        <td>Customs Duty</td>
+        <td>{{ "%.1f"|format(doc.sa_default_customs or 0) }}%</td>
+      </tr>
+      <tr>
+        <td>VAT ({{ "%.0f"|format(config.vat_rate or 14) }}%)</td>
+        <td>Included</td>
+      </tr>
+      <tr>
+        <td>Exchange Rate</td>
+        <td>1 EUR = {{ "%.2f"|format(doc.sa_eur_egp_rate or 0) }} EGP</td>
+      </tr>
+      <tr class="total-row">
+        <td>Grand Total (EGP)</td>
+        <td>EGP {{ "%.2f"|format(doc.sa_grand_total_egp or 0) }}</td>
+      </tr>
+    </table>
+  </div>
+  <div style="padding-top: 8px; font-size: 8pt; color: #666;">
+    <p><strong>Notes:</strong></p>
+    <p>• Prices include VAT at {{ "%.0f"|format(config.vat_rate or 14) }}%</p>
+    <p>• Exchange rate: 1 EUR = {{ "%.2f"|format(doc.sa_eur_egp_rate or 0) }} EGP (at time of quotation)</p>
+    <p>• Delivery: Ex-Works SystemAir factory unless otherwise stated</p>
+    <p>• Lead time: Subject to factory confirmation</p>
+  </div>
+</div>
+
+<!-- ================================================================
+     SECTION 6 — FOOTER
+     ================================================================ -->
+<div class="sa-footer">
+  <div>
+    <p><strong>Terms &amp; Conditions</strong></p>
+    <p>• This quotation is valid for {{ validity_days }} days from the date above.</p>
+    <p>• Prices are subject to change based on exchange rate fluctuations.</p>
+    <p>• Payment terms: As per agreed contract.</p>
+    <p>• Technical specifications as per SystemAir standard product range.</p>
+    <p>• All equipment subject to availability at time of order confirmation.</p>
+  </div>
+  <div class="signature-block">
+    <p><strong>Authorised Signatory</strong></p>
+    <div class="sig-line">{{ doc.company or "Kayan for Import" }}</div>
+    <p style="margin-top: 4px; font-size: 7.5pt; color: #888;">
+      Prepared by: {{ doc.owner or frappe.session.user }}
+    </p>
+  </div>
+</div>
+
+<!-- ================================================================
+     SECTION 7 — INTERNAL PRICING PAGE (only if print_internal = 1)
+     ================================================================ -->
+{%- if print_internal and doc.sa_items -%}
+<div class="sa-internal-page">
+  <h3>INTERNAL — PRICING BREAKDOWN (CONFIDENTIAL)</h3>
+  <p style="font-size: 8pt; color: #e53e3e; margin-bottom: 10px;">
+    This section is for internal use only and must not be shared with the customer.
+  </p>
+
+  {%- for row in doc.sa_items -%}
+  <div style="margin-bottom: 16px;">
+    <p style="font-weight: 700; font-size: 9pt; margin-bottom: 6px;">
+      {{ row.idx }}. {{ row.item_code or row.item_name or "—" }}
+      {% if row.location %} — {{ row.location }}{% endif %}
+    </p>
+    <table class="sa-pricing-breakdown">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Parameter</th>
+          <th>Value</th>
+          <th>Excel Col</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center">1</td>
+          <td>EX Price (EUR)</td>
+          <td class="num">{{ "%.4f"|format(row.ex_price or 0) }}</td>
+          <td class="center">L/M</td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td>Supplier Discount (%)</td>
+          <td class="num">{{ "%.2f"|format(row.supplier_discount or 0) }}%</td>
+          <td class="center">N</td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td>Quantity</td>
+          <td class="num">{{ "%.0f"|format(row.qty or 0) }}</td>
+          <td class="center">O</td>
+        </tr>
+        <tr>
+          <td class="center">4</td>
+          <td>Basic EX Price (EUR)</td>
+          <td class="num">{{ "%.4f"|format(row.basic_ex_price or 0) }}</td>
+          <td class="center">P</td>
+        </tr>
+        <tr>
+          <td class="center">5</td>
+          <td>Additional Discount (%)</td>
+          <td class="num">{{ "%.2f"|format(row.additional_discount or 0) }}%</td>
+          <td class="center">Q</td>
+        </tr>
+        <tr>
+          <td class="center">6</td>
+          <td>Final EX Price (EUR)</td>
+          <td class="num">{{ "%.4f"|format(row.final_ex_price or 0) }}</td>
+          <td class="center">R</td>
+        </tr>
+        <tr>
+          <td class="center">7</td>
+          <td>Shipping Cost (EUR)</td>
+          <td class="num">{{ "%.4f"|format(row.shipping_cost or 0) }}</td>
+          <td class="center">S</td>
+        </tr>
+        <tr>
+          <td class="center">8</td>
+          <td>CIF (EUR)</td>
+          <td class="num">{{ "%.4f"|format(row.cif or 0) }}</td>
+          <td class="center">T</td>
+        </tr>
+        <tr>
+          <td class="center">9</td>
+          <td>Cost Factors (CF1 × CF2)</td>
+          <td class="num">{{ "%.4f"|format(config.combined_cost_factor or 1.1235) }}</td>
+          <td class="center">W</td>
+        </tr>
+        <tr>
+          <td class="center">10</td>
+          <td>Customs Rate (%)</td>
+          <td class="num">{{ "%.2f"|format(row.customs_rate or 0) }}%</td>
+          <td class="center">U</td>
+        </tr>
+        <tr>
+          <td class="center">11</td>
+          <td>VAT Multiplier</td>
+          <td class="num">{{ "%.4f"|format(1 + (config.vat_rate or 14) / 100) }}</td>
+          <td class="center">V</td>
+        </tr>
+        <tr>
+          <td class="center">12</td>
+          <td>Currency Rate (EUR/EGP)</td>
+          <td class="num">{{ "%.2f"|format(doc.sa_eur_egp_rate or 0) }}</td>
+          <td class="center">X</td>
+        </tr>
+        <tr>
+          <td class="center">13</td>
+          <td>DDP Cost (EGP)</td>
+          <td class="num">{{ "%.2f"|format(row.ddp_cost or 0) }}</td>
+          <td class="center">Y</td>
+        </tr>
+        <tr>
+          <td class="center">14</td>
+          <td>Margin (%)</td>
+          <td class="num">{{ "%.2f"|format(row.margin_percent or 0) }}%</td>
+          <td class="center">Z</td>
+        </tr>
+        <tr>
+          <td class="center">15</td>
+          <td>Total Price (EGP)</td>
+          <td class="num">{{ "%.2f"|format(row.total_price_egp or 0) }}</td>
+          <td class="center">AB</td>
+        </tr>
+        <tr>
+          <td class="center">16</td>
+          <td>Unit Price (EGP)</td>
+          <td class="num"><strong>{{ "%.2f"|format(row.unit_price_egp or 0) }}</strong></td>
+          <td class="center">AA</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {%- endfor -%}
+
+  <div style="margin-top: 20px; padding: 10px; background: #fff5f5; border: 1px solid #e53e3e; border-radius: 4px;">
+    <p style="font-size: 8pt; font-weight: 700;">Summary</p>
+    <p style="font-size: 8pt;">Total CIF (EUR): EUR {{ "%.2f"|format(doc.sa_total_cif_eur or 0) }}</p>
+    <p style="font-size: 8pt;">Grand Total (EGP): EGP {{ "%.2f"|format(doc.sa_grand_total_egp or 0) }}</p>
+    <p style="font-size: 8pt;">Effective Margin: {{ "%.2f"|format(doc.sa_effective_margin or 0) }}%</p>
+  </div>
+</div>
+{%- endif -%}
+
+</body>
+</html>
