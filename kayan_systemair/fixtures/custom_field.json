@@ -8,7 +8,7 @@
     "label": "SA: Nominal Diameter (mm)",
     "options": "315\n355\n400\n450\n500\n560\n630\n710\n800\n900\n1000\n1120\n1250\n1400\n1600",
     "insert_after": "item_group",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -19,7 +19,7 @@
     "fieldtype": "Int",
     "label": "SA: Number of Blades",
     "insert_after": "sa_nominal_diameter",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -30,7 +30,7 @@
     "fieldtype": "Data",
     "label": "SA: Blade Angle (\u00b0)",
     "insert_after": "sa_num_blades",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -42,7 +42,7 @@
     "label": "SA: Number of Poles",
     "options": "\n2\n4\n6\n8",
     "insert_after": "sa_blade_angle",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -54,7 +54,7 @@
     "label": "SA: Smoke Rating",
     "options": "\nNone\nB\nF",
     "insert_after": "sa_num_poles",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -66,7 +66,7 @@
     "label": "SA: Approx. Weight (kg)",
     "insert_after": "sa_smoke_rating",
     "precision": "2",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -77,7 +77,7 @@
     "fieldtype": "Data",
     "label": "SA: Article No. (Systemair)",
     "insert_after": "sa_weight_kg",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -88,7 +88,7 @@
     "fieldtype": "Data",
     "label": "SA: Product Family",
     "insert_after": "sa_article_no",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -99,7 +99,7 @@
     "fieldtype": "Data",
     "label": "SA: Primary Factory",
     "insert_after": "sa_product_family",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -111,7 +111,7 @@
     "label": "Is SystemAir Quotation",
     "default": "0",
     "insert_after": "amended_from",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -123,7 +123,7 @@
     "label": "Project Reference",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "is_systemair_quotation",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -136,7 +136,7 @@
     "precision": "4",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_project_ref",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -149,7 +149,7 @@
     "default": "0",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_eur_egp_rate",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -162,7 +162,7 @@
     "default": "0",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_default_customs",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -175,7 +175,7 @@
     "default": "0",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_default_discount",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -188,7 +188,7 @@
     "default": "50",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_additional_discount",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -201,7 +201,7 @@
     "default": "12",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_default_margin",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -216,7 +216,7 @@
     "read_only": 1,
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_shipping_rate",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -231,7 +231,7 @@
     "read_only": 1,
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_total_cif_eur",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -245,7 +245,7 @@
     "read_only": 1,
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_grand_total_egp",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -258,7 +258,7 @@
     "options": "SystemAir Quotation Item",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_effective_margin",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -271,7 +271,7 @@
     "options": "SystemAir Accessory Item",
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_items",
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   },
   {
@@ -285,7 +285,7 @@
     "depends_on": "eval:doc.is_systemair_quotation==1",
     "insert_after": "sa_accessories",
     "no_copy": 1,
-    "module": "kayan_systemair",
+    "module": "Kayan Systemair",
     "translatable": 0
   }
 ]
