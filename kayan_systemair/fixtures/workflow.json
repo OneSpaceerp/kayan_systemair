@@ -4,11 +4,13 @@
     "name": "SystemAir Quotation Workflow",
     "document_type": "Quotation",
     "workflow_name": "SystemAir Quotation Workflow",
+    "workflow_state_field": "workflow_state",
     "is_active": 1,
     "override_status": 0,
     "send_email_alert": 0,
     "states": [
       {
+        "doctype": "Workflow Document State",
         "state": "Draft",
         "doc_status": "0",
         "allow_edit": "SystemAir Sales User",
@@ -18,6 +20,7 @@
         "update_value": "Open"
       },
       {
+        "doctype": "Workflow Document State",
         "state": "Pending Review",
         "doc_status": "0",
         "allow_edit": "SystemAir Sales User",
@@ -27,6 +30,7 @@
         "update_value": "Open"
       },
       {
+        "doctype": "Workflow Document State",
         "state": "Approved",
         "doc_status": "0",
         "allow_edit": "SystemAir Sales Manager",
@@ -36,36 +40,40 @@
         "update_value": "Open"
       },
       {
+        "doctype": "Workflow Document State",
         "state": "Sent to Customer",
         "doc_status": "0",
-        "allow_edit": "",
+        "allow_edit": "SystemAir Sales Manager",
         "is_optional_state": 0,
         "workflow_state_name": "Sent to Customer",
         "update_field": "status",
         "update_value": "Open"
       },
       {
+        "doctype": "Workflow Document State",
         "state": "Order Received",
         "doc_status": "0",
-        "allow_edit": "",
+        "allow_edit": "SystemAir Sales Manager",
         "is_optional_state": 0,
         "workflow_state_name": "Order Received",
         "update_field": "status",
         "update_value": "Ordered"
       },
       {
+        "doctype": "Workflow Document State",
         "state": "Lost",
         "doc_status": "0",
-        "allow_edit": "",
+        "allow_edit": "SystemAir Sales Manager",
         "is_optional_state": 0,
         "workflow_state_name": "Lost",
         "update_field": "status",
         "update_value": "Lost"
       },
       {
+        "doctype": "Workflow Document State",
         "state": "Cancelled",
         "doc_status": "0",
-        "allow_edit": "",
+        "allow_edit": "SystemAir Sales Manager",
         "is_optional_state": 0,
         "workflow_state_name": "Cancelled",
         "update_field": "status",
@@ -74,6 +82,7 @@
     ],
     "transitions": [
       {
+        "doctype": "Workflow Transition",
         "state": "Draft",
         "action": "Submit for Review",
         "next_state": "Pending Review",
@@ -82,6 +91,7 @@
         "condition": "doc.is_systemair_quotation == 1"
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Pending Review",
         "action": "Approve",
         "next_state": "Approved",
@@ -90,6 +100,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Pending Review",
         "action": "Reject",
         "next_state": "Draft",
@@ -98,6 +109,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Approved",
         "action": "Mark Sent",
         "next_state": "Sent to Customer",
@@ -106,6 +118,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Sent to Customer",
         "action": "Mark Won",
         "next_state": "Order Received",
@@ -114,6 +127,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Sent to Customer",
         "action": "Mark Lost",
         "next_state": "Lost",
@@ -122,6 +136,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Approved",
         "action": "SA Cancel",
         "next_state": "Cancelled",
@@ -130,6 +145,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Pending Review",
         "action": "SA Cancel",
         "next_state": "Cancelled",
@@ -138,6 +154,7 @@
         "condition": ""
       },
       {
+        "doctype": "Workflow Transition",
         "state": "Draft",
         "action": "SA Cancel",
         "next_state": "Cancelled",
