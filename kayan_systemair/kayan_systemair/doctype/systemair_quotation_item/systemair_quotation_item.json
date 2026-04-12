@@ -4,14 +4,14 @@
  "doctype": "DocType",
  "document_type": "Document",
  "field_order": [
+  "item_code",
+  "item_name",
   "sa_sn",
   "location",
   "fan_type",
   "speed_type",
   "smoke_rating",
   "sa_article_no",
-  "item_code",
-  "item_name",
   "airflow_ls",
   "esp_pa",
   "qty",
@@ -36,15 +36,30 @@
  ],
  "fields": [
   {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Code (Model)",
+   "options": "Item",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Model Description",
+   "read_only": 1
+  },
+  {
    "fieldname": "sa_sn",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Fan Reference (SN)"
+   "label": "Fan Ref. (SN)"
   },
   {
    "fieldname": "location",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Location / Tag"
   },
   {
@@ -69,19 +84,6 @@
    "fieldname": "sa_article_no",
    "fieldtype": "Data",
    "label": "Article No."
-  },
-  {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Model (Item)",
-   "options": "Item"
-  },
-  {
-   "fieldname": "item_name",
-   "fieldtype": "Data",
-   "label": "Item Name",
-   "read_only": 1
   },
   {
    "fieldname": "airflow_ls",

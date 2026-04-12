@@ -104,13 +104,24 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_section_break",
+    "dt": "Quotation",
+    "fieldname": "sa_section_break",
+    "fieldtype": "Section Break",
+    "label": "SystemAir Quotation",
+    "insert_after": "amended_from",
+    "module": "Kayan Systemair",
+    "translatable": 0
+  },
+  {
+    "doctype": "Custom Field",
     "name": "Quotation-is_systemair_quotation",
     "dt": "Quotation",
     "fieldname": "is_systemair_quotation",
     "fieldtype": "Check",
     "label": "Is SystemAir Quotation",
     "default": "0",
-    "insert_after": "amended_from",
+    "insert_after": "sa_section_break",
     "module": "Kayan Systemair",
     "translatable": 0
   },
@@ -128,6 +139,16 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_col_break_1",
+    "dt": "Quotation",
+    "fieldname": "sa_col_break_1",
+    "fieldtype": "Column Break",
+    "insert_after": "sa_project_ref",
+    "module": "Kayan Systemair",
+    "translatable": 0
+  },
+  {
+    "doctype": "Custom Field",
     "name": "Quotation-sa_eur_egp_rate",
     "dt": "Quotation",
     "fieldname": "sa_eur_egp_rate",
@@ -135,7 +156,7 @@
     "label": "EUR/EGP Exchange Rate",
     "precision": "4",
     "depends_on": "eval:doc.is_systemair_quotation==1",
-    "insert_after": "sa_project_ref",
+    "insert_after": "sa_col_break_1",
     "module": "Kayan Systemair",
     "translatable": 0
   },
@@ -206,6 +227,18 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_totals_section",
+    "dt": "Quotation",
+    "fieldname": "sa_totals_section",
+    "fieldtype": "Section Break",
+    "label": "SA Totals",
+    "depends_on": "eval:doc.is_systemair_quotation==1",
+    "insert_after": "sa_shipping_rate",
+    "module": "Kayan Systemair",
+    "translatable": 0
+  },
+  {
+    "doctype": "Custom Field",
     "name": "Quotation-sa_total_cif_eur",
     "dt": "Quotation",
     "fieldname": "sa_total_cif_eur",
@@ -215,7 +248,17 @@
     "precision": "2",
     "read_only": 1,
     "depends_on": "eval:doc.is_systemair_quotation==1",
-    "insert_after": "sa_shipping_rate",
+    "insert_after": "sa_totals_section",
+    "module": "Kayan Systemair",
+    "translatable": 0
+  },
+  {
+    "doctype": "Custom Field",
+    "name": "Quotation-sa_totals_col_1",
+    "dt": "Quotation",
+    "fieldname": "sa_totals_col_1",
+    "fieldtype": "Column Break",
+    "insert_after": "sa_total_cif_eur",
     "module": "Kayan Systemair",
     "translatable": 0
   },
@@ -230,7 +273,17 @@
     "precision": "2",
     "read_only": 1,
     "depends_on": "eval:doc.is_systemair_quotation==1",
-    "insert_after": "sa_total_cif_eur",
+    "insert_after": "sa_totals_col_1",
+    "module": "Kayan Systemair",
+    "translatable": 0
+  },
+  {
+    "doctype": "Custom Field",
+    "name": "Quotation-sa_totals_col_2",
+    "dt": "Quotation",
+    "fieldname": "sa_totals_col_2",
+    "fieldtype": "Column Break",
+    "insert_after": "sa_grand_total_egp",
     "module": "Kayan Systemair",
     "translatable": 0
   },
@@ -244,7 +297,18 @@
     "precision": "2",
     "read_only": 1,
     "depends_on": "eval:doc.is_systemair_quotation==1",
-    "insert_after": "sa_grand_total_egp",
+    "insert_after": "sa_totals_col_2",
+    "module": "Kayan Systemair",
+    "translatable": 0
+  },
+  {
+    "doctype": "Custom Field",
+    "name": "Quotation-sa_tables_section",
+    "dt": "Quotation",
+    "fieldname": "sa_tables_section",
+    "fieldtype": "Section Break",
+    "depends_on": "eval:doc.is_systemair_quotation==1",
+    "insert_after": "sa_effective_margin",
     "module": "Kayan Systemair",
     "translatable": 0
   },
@@ -257,7 +321,7 @@
     "label": "SystemAir Items",
     "options": "SystemAir Quotation Item",
     "depends_on": "eval:doc.is_systemair_quotation==1",
-    "insert_after": "sa_effective_margin",
+    "insert_after": "sa_tables_section",
     "module": "Kayan Systemair",
     "translatable": 0
   },
