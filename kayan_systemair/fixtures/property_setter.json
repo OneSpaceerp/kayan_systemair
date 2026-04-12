@@ -2,6 +2,7 @@
   {
     "doctype": "Property Setter",
     "name": "Quotation-items-hidden",
+    "doctype_or_field": "DocField",
     "doc_type": "Quotation",
     "field_name": "items",
     "property": "hidden",
