@@ -1,6 +1,7 @@
 [
   {
     "doctype": "Item Group",
+    "name": "SystemAir Axial Fans",
     "item_group_name": "SystemAir Axial Fans",
     "parent_item_group": "Products",
     "is_group": 0,

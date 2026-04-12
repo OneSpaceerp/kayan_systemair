@@ -1,6 +1,7 @@
 [
   {
     "doctype": "Role",
+    "name": "SystemAir Sales User",
     "role_name": "SystemAir Sales User",
     "desk_access": 1,
     "two_factor_auth": 0,
@@ -15,6 +16,7 @@
   },
   {
     "doctype": "Role",
+    "name": "SystemAir Sales Manager",
     "role_name": "SystemAir Sales Manager",
     "desk_access": 1,
     "two_factor_auth": 0,
@@ -29,6 +31,7 @@
   },
   {
     "doctype": "Role",
+    "name": "SystemAir Admin",
     "role_name": "SystemAir Admin",
     "desk_access": 1,
     "two_factor_auth": 0,

@@ -1,6 +1,7 @@
 [
   {
     "doctype": "Price List",
+    "name": "Systemair Germany 2026",
     "price_list_name": "Systemair Germany 2026",
     "currency": "EUR",
     "selling": 1,
@@ -9,6 +10,7 @@
   },
   {
     "doctype": "Price List",
+    "name": "Systemair Malaysia 2026",
     "price_list_name": "Systemair Malaysia 2026",
     "currency": "EUR",
     "selling": 1,

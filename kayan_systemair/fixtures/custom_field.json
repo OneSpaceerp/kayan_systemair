@@ -1,6 +1,7 @@
 [
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_nominal_diameter",
     "dt": "Item",
     "fieldname": "sa_nominal_diameter",
     "fieldtype": "Select",
@@ -12,6 +13,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_num_blades",
     "dt": "Item",
     "fieldname": "sa_num_blades",
     "fieldtype": "Int",
@@ -22,6 +24,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_blade_angle",
     "dt": "Item",
     "fieldname": "sa_blade_angle",
     "fieldtype": "Data",
@@ -32,6 +35,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_num_poles",
     "dt": "Item",
     "fieldname": "sa_num_poles",
     "fieldtype": "Select",
@@ -43,6 +47,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_smoke_rating",
     "dt": "Item",
     "fieldname": "sa_smoke_rating",
     "fieldtype": "Select",
@@ -54,6 +59,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_weight_kg",
     "dt": "Item",
     "fieldname": "sa_weight_kg",
     "fieldtype": "Float",
@@ -65,6 +71,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_article_no",
     "dt": "Item",
     "fieldname": "sa_article_no",
     "fieldtype": "Data",
@@ -75,6 +82,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_product_family",
     "dt": "Item",
     "fieldname": "sa_product_family",
     "fieldtype": "Data",
@@ -85,6 +93,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Item-sa_primary_factory",
     "dt": "Item",
     "fieldname": "sa_primary_factory",
     "fieldtype": "Data",
@@ -95,6 +104,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-is_systemair_quotation",
     "dt": "Quotation",
     "fieldname": "is_systemair_quotation",
     "fieldtype": "Check",
@@ -106,6 +116,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_project_ref",
     "dt": "Quotation",
     "fieldname": "sa_project_ref",
     "fieldtype": "Data",
@@ -117,6 +128,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_eur_egp_rate",
     "dt": "Quotation",
     "fieldname": "sa_eur_egp_rate",
     "fieldtype": "Float",
@@ -129,6 +141,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_default_customs",
     "dt": "Quotation",
     "fieldname": "sa_default_customs",
     "fieldtype": "Percent",
@@ -141,6 +154,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_default_discount",
     "dt": "Quotation",
     "fieldname": "sa_default_discount",
     "fieldtype": "Percent",
@@ -153,6 +167,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_additional_discount",
     "dt": "Quotation",
     "fieldname": "sa_additional_discount",
     "fieldtype": "Percent",
@@ -165,6 +180,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_default_margin",
     "dt": "Quotation",
     "fieldname": "sa_default_margin",
     "fieldtype": "Percent",
@@ -177,6 +193,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_shipping_rate",
     "dt": "Quotation",
     "fieldname": "sa_shipping_rate",
     "fieldtype": "Percent",
@@ -189,6 +206,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_total_cif_eur",
     "dt": "Quotation",
     "fieldname": "sa_total_cif_eur",
     "fieldtype": "Currency",
@@ -203,6 +221,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_grand_total_egp",
     "dt": "Quotation",
     "fieldname": "sa_grand_total_egp",
     "fieldtype": "Currency",
@@ -217,6 +236,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_effective_margin",
     "dt": "Quotation",
     "fieldname": "sa_effective_margin",
     "fieldtype": "Percent",
@@ -230,6 +250,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_items",
     "dt": "Quotation",
     "fieldname": "sa_items",
     "fieldtype": "Table",
@@ -242,6 +263,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-sa_accessories",
     "dt": "Quotation",
     "fieldname": "sa_accessories",
     "fieldtype": "Table",
@@ -254,6 +276,7 @@
   },
   {
     "doctype": "Custom Field",
+    "name": "Quotation-print_internal",
     "dt": "Quotation",
     "fieldname": "print_internal",
     "fieldtype": "Check",

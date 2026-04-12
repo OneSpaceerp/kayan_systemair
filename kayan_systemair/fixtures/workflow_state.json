@@ -1,42 +1,49 @@
 [
   {
     "doctype": "Workflow State",
+    "name": "Draft",
     "workflow_state_name": "Draft",
     "style": "default",
     "icon": "fa fa-pencil"
   },
   {
     "doctype": "Workflow State",
+    "name": "Pending Review",
     "workflow_state_name": "Pending Review",
     "style": "warning",
     "icon": "fa fa-clock-o"
   },
   {
     "doctype": "Workflow State",
+    "name": "Approved",
     "workflow_state_name": "Approved",
     "style": "success",
     "icon": "fa fa-check"
   },
   {
     "doctype": "Workflow State",
+    "name": "Sent to Customer",
     "workflow_state_name": "Sent to Customer",
     "style": "primary",
     "icon": "fa fa-paper-plane"
   },
   {
     "doctype": "Workflow State",
+    "name": "Order Received",
     "workflow_state_name": "Order Received",
     "style": "success",
     "icon": "fa fa-trophy"
   },
   {
     "doctype": "Workflow State",
+    "name": "Lost",
     "workflow_state_name": "Lost",
     "style": "danger",
     "icon": "fa fa-times"
   },
   {
     "doctype": "Workflow State",
+    "name": "Cancelled",
     "workflow_state_name": "Cancelled",
     "style": "secondary",
     "icon": "fa fa-ban"
