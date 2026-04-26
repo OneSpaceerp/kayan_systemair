@@ -150,7 +150,6 @@ PriceListImportPage = class PriceListImportPage {
         formData.append('is_private', '1');
         formData.append('folder', 'Home/Attachments');
 
-        frappe.ui.set_route('');
         frappe.show_progress(__('Uploading...'), 0, 100);
 
         $.ajax({
