@@ -31,6 +31,25 @@
             }
         },
 
+        validate: function(frm) {
+            // Bypass the client-side missing fields error for the standard items table
+            // by injecting the first SA item. The server before_save hook will overwrite it.
+            if (frm.doc.is_systemair_quotation) {
+                if (!frm.doc.items || frm.doc.items.length === 0) {
+                    var sa_items = frm.doc.sa_items || [];
+                    if (sa_items.length > 0) {
+                        var first_item = sa_items[0];
+                        var row = frm.add_child('items');
+                        row.item_code = first_item.item_code;
+                        row.item_name = first_item.item_name || first_item.item_code;
+                        row.uom = 'Nos';
+                        row.qty = first_item.qty || 1;
+                        row.rate = first_item.unit_price_egp || 0;
+                    }
+                }
+            }
+        },
+
         is_systemair_quotation: function(frm) {
             toggle_sa_sections(frm);
             if (frm.doc.is_systemair_quotation) {
