@@ -50,9 +50,14 @@ PriceListImportPage = class PriceListImportPage {
                         <input type="file" id="excel-file-input" accept=".xlsx" class="form-control-file">
                         <small class="text-muted">${__('Accepted format: SystemAir price list .xlsx file (Germany or Malaysia)')}</small>
                     </div>
-                    <button id="btn-preview" class="btn btn-default mt-2" disabled>
-                        <i class="fa fa-eye"></i> ${__('Preview (first 20 rows)')}
-                    </button>
+                    <div class="mt-3">
+                        <button id="btn-preview" class="btn btn-default mr-2" disabled>
+                            <i class="fa fa-eye"></i> ${__('Preview (first 20 rows)')}
+                        </button>
+                        <button id="btn-import" class="btn btn-primary" disabled>
+                            <i class="fa fa-cloud-upload"></i> ${__('Start Import (Background Job)')}
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Preview Table -->
@@ -68,9 +73,6 @@ PriceListImportPage = class PriceListImportPage {
                             <tbody id="preview-tbody"></tbody>
                         </table>
                     </div>
-                    <button id="btn-import" class="btn btn-primary mt-3">
-                        <i class="fa fa-cloud-upload"></i> ${__('Start Import (Background Job)')}
-                    </button>
                 </div>
 
                 <!-- Import Progress -->
@@ -187,8 +189,13 @@ PriceListImportPage = class PriceListImportPage {
     }
 
     check_ready_to_preview() {
+        var price_list = $(this.wrapper).find('#price-list-select').val();
+        if (price_list) {
+            this.selected_price_list = price_list;
+        }
         var ready = this.file_url && this.selected_price_list;
         $(this.wrapper).find('#btn-preview').prop('disabled', !ready);
+        $(this.wrapper).find('#btn-import').prop('disabled', !ready);
     }
 
     preview_file() {
@@ -245,6 +252,11 @@ PriceListImportPage = class PriceListImportPage {
 
     start_import() {
         var me = this;
+        if (!me.file_url || !me.selected_price_list) {
+            frappe.show_alert({message: __('Please select a price list and upload a file first'), indicator: 'orange'});
+            return;
+        }
+
         frappe.confirm(
             __('Start importing {0} into <b>{1}</b>? This will run in the background.',
                 [me.file_url, me.selected_price_list]),
