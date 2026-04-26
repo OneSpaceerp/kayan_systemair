@@ -27,24 +27,37 @@
             if (frm.doc.is_systemair_quotation) {
                 setup_sa_toolbar(frm);
                 apply_margin_colors(frm);
+                // Recalculate all rows so SA Totals always reflect current data.
+                // On a saved doc the server has already written computed values;
+                // on a new/unsaved doc this brings client-side totals up to date.
+                recalculate_all_rows(frm);
                 update_quotation_totals(frm);
             }
         },
 
         validate: function(frm) {
-            // Bypass the client-side missing fields error for the standard items table
-            // by injecting the first SA item. The server before_save hook will overwrite it.
+            // Ensure the standard items table passes mandatory-field checks before save.
+            // The server before_save (_sync_to_standard_items) will rebuild this properly.
             if (frm.doc.is_systemair_quotation) {
-                if (!frm.doc.items || frm.doc.items.length === 0) {
-                    var sa_items = frm.doc.sa_items || [];
+                // Patch any existing rows that are missing mandatory fields
+                (frm.doc.items || []).forEach(function(row) {
+                    if (!row.item_name) row.item_name = row.item_code || 'Item';
+                    if (!row.uom) row.uom = 'Nos';
+                    if (!row.qty) row.qty = 1;
+                });
+                // If items table is still empty, seed it from sa_items
+                if (!(frm.doc.items || []).length) {
+                    var sa_items = (frm.doc.sa_items || []).filter(function(r) {
+                        return r.item_code;
+                    });
                     if (sa_items.length > 0) {
-                        var first_item = sa_items[0];
+                        var first = sa_items[0];
                         var row = frm.add_child('items');
-                        row.item_code = first_item.item_code;
-                        row.item_name = first_item.item_name || first_item.item_code;
+                        row.item_code = first.item_code;
+                        row.item_name = first.item_name || first.item_code;
                         row.uom = 'Nos';
-                        row.qty = first_item.qty || 1;
-                        row.rate = first_item.unit_price_egp || 0;
+                        row.qty = flt(first.qty) || 1;
+                        row.rate = flt(first.unit_price_egp) || 0;
                     }
                 }
             }
@@ -330,13 +343,18 @@
             grand_total += flt(row.total_price_egp);
         });
 
-        frm.set_value('sa_total_cif_eur',   flt(total_cif, 2));
-        frm.set_value('sa_grand_total_egp', flt(grand_total, 2));
-
         var eff_margin = (grand_total > 0)
             ? flt((grand_total - total_ddp) / grand_total * 100, 2)
             : 0;
-        frm.set_value('sa_effective_margin', eff_margin);
+
+        // Direct doc mutation + refresh avoids triggering dirty/change machinery
+        // on these computed, read-only summary fields.
+        frm.doc.sa_total_cif_eur   = flt(total_cif, 2);
+        frm.doc.sa_grand_total_egp = flt(grand_total, 2);
+        frm.doc.sa_effective_margin = eff_margin;
+        frm.refresh_field('sa_total_cif_eur');
+        frm.refresh_field('sa_grand_total_egp');
+        frm.refresh_field('sa_effective_margin');
     }
 
     // ------------------------------------------------------------------
