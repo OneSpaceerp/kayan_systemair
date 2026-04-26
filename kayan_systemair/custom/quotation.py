@@ -30,6 +30,7 @@ def before_save(doc, method=None):
     _compute_all_item_pricing(doc)
     _compute_accessory_totals(doc)
     _compute_quotation_totals(doc)
+    _sync_to_standard_items(doc)
 
 
 def on_submit(doc, method=None):
@@ -162,3 +163,38 @@ def _compute_quotation_totals(doc):
         doc.sa_effective_margin = flt(effective_margin, 2)
     else:
         doc.sa_effective_margin = 0.0
+
+
+def _sync_to_standard_items(doc):
+    """
+    Sync sa_items and sa_accessories into the standard items table so ERPNext validation passes.
+    """
+    doc.set("items", [])
+
+    for row in (doc.get("sa_items") or []):
+        item_code = row.get("item_code")
+        if not item_code:
+            continue
+            
+        doc.append("items", {
+            "item_code": item_code,
+            "item_name": row.get("item_name") or item_code,
+            "qty": flt(row.get("qty")) or 1,
+            "rate": flt(row.get("unit_price_egp")),
+            "uom": "Nos",
+            "description": row.get("model_description") or item_code,
+        })
+        
+    for row in (doc.get("sa_accessories") or []):
+        item_code = row.get("item_code")
+        if not item_code:
+            continue
+            
+        doc.append("items", {
+            "item_code": item_code,
+            "item_name": row.get("accessory_name") or item_code,
+            "qty": flt(row.get("qty")) or 1,
+            "rate": flt(row.get("unit_price_eur")) * flt(doc.get("sa_eur_egp_rate")),
+            "uom": "Nos",
+            "description": row.get("accessory_name") or item_code,
+        })

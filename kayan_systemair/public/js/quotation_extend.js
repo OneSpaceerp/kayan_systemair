@@ -194,15 +194,15 @@
     function apply_defaults_and_recalculate(frm) {
         var rows = frm.doc.sa_items || [];
         rows.forEach(function(row) {
-            if (flt(frm.doc.sa_default_discount) && !flt(row.supplier_discount)) {
+            if (flt(frm.doc.sa_default_discount) > 0) {
                 frappe.model.set_value(row.doctype, row.name, 'supplier_discount',
                     flt(frm.doc.sa_default_discount));
             }
-            if (flt(frm.doc.sa_default_margin) && !flt(row.margin_percent)) {
+            if (flt(frm.doc.sa_default_margin) > 0) {
                 frappe.model.set_value(row.doctype, row.name, 'margin_percent',
                     flt(frm.doc.sa_default_margin));
             }
-            if (flt(frm.doc.sa_default_customs) && !flt(row.customs_rate)) {
+            if (flt(frm.doc.sa_default_customs) > 0) {
                 frappe.model.set_value(row.doctype, row.name, 'customs_rate',
                     flt(frm.doc.sa_default_customs));
             }
