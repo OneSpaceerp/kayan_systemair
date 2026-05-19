@@ -108,25 +108,22 @@
   },
   {
    "fieldname": "germany_list_price",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Germany List Price (EUR)",
-   "options": "EUR",
    "precision": "2",
    "read_only": 1
   },
   {
    "fieldname": "malaysia_list_price",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Malaysia List Price (EUR)",
-   "options": "EUR",
    "precision": "2",
    "read_only": 1
   },
   {
    "fieldname": "ex_price",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "EX Price (EUR)",
-   "options": "EUR",
    "precision": "2"
   },
   {
@@ -167,33 +164,29 @@
   },
   {
    "fieldname": "basic_ex_price",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Basic EX Price (EUR)",
-   "options": "EUR",
    "precision": "4",
    "read_only": 1
   },
   {
    "fieldname": "shipping_cost",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Shipping Cost (EUR)",
-   "options": "EUR",
    "precision": "4",
    "read_only": 1
   },
   {
    "fieldname": "final_ex_price",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Final EX Price (EUR)",
-   "options": "EUR",
    "precision": "4",
    "read_only": 1
   },
   {
    "fieldname": "cif",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "CIF (EUR)",
-   "options": "EUR",
    "precision": "4",
    "read_only": 1
   },

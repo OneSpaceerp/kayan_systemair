@@ -41,10 +41,9 @@
   },
   {
    "fieldname": "unit_price_eur",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Unit Price (EUR)",
-   "options": "EUR",
    "precision": "2"
   },
   {
