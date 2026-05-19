@@ -44,6 +44,8 @@
                     if (!row.item_name) row.item_name = row.item_code || 'Item';
                     if (!row.uom) row.uom = 'Nos';
                     if (!row.qty) row.qty = 1;
+                    if (!row.conversion_factor) row.conversion_factor = 1;
+                    if (row.ordered_qty == null) row.ordered_qty = 0;
                 });
                 // If items table is still empty, seed it from sa_items
                 if (!(frm.doc.items || []).length) {
@@ -58,6 +60,8 @@
                         row.uom = 'Nos';
                         row.qty = flt(first.qty) || 1;
                         row.rate = flt(first.unit_price_egp) || 0;
+                        row.conversion_factor = 1;
+                        row.ordered_qty = 0;
                     }
                 }
             }

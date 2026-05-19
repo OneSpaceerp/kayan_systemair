@@ -30,7 +30,9 @@ fixtures = [
 # Document Events
 doc_events = {
     "Quotation": {
-        "before_save": "kayan_systemair.custom.quotation.before_save",
+        # validate fires before _validate_mandatory() in both insert and update paths,
+        # ensuring _sync_to_standard_items runs before ERPNext's mandatory field check.
+        "validate": "kayan_systemair.custom.quotation.before_save",
         "on_submit": "kayan_systemair.custom.quotation.on_submit",
         "on_cancel": "kayan_systemair.custom.quotation.on_cancel",
     }

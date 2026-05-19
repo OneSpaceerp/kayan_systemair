@@ -182,19 +182,23 @@ def _sync_to_standard_items(doc):
             "qty": flt(row.get("qty")) or 1,
             "rate": flt(row.get("unit_price_egp")),
             "uom": "Nos",
+            "conversion_factor": 1.0,
+            "ordered_qty": 0,
             "description": row.get("model_description") or item_code,
         })
-        
+
     for row in (doc.get("sa_accessories") or []):
         item_code = row.get("item_code")
         if not item_code:
             continue
-            
+
         doc.append("items", {
             "item_code": item_code,
             "item_name": row.get("accessory_name") or item_code,
             "qty": flt(row.get("qty")) or 1,
             "rate": flt(row.get("unit_price_eur")) * flt(doc.get("sa_eur_egp_rate")),
             "uom": "Nos",
+            "conversion_factor": 1.0,
+            "ordered_qty": 0,
             "description": row.get("accessory_name") or item_code,
         })
