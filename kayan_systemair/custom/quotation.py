@@ -11,10 +11,21 @@ Hooks into the standard ERPNext Quotation DocType to:
 import frappe
 from frappe import _
 from frappe.utils import flt
+from erpnext.selling.doctype.quotation.quotation import Quotation
 
 from kayan_systemair.kayan_systemair.doctype.systemair_quotation_item.pricing_engine import (
     compute_pricing,
 )
+
+
+class CustomQuotation(Quotation):
+    def process_item_selection(self, item_idx):
+        # ERPNext looks up idx in the standard items table, but for SA quotations
+        # that table only holds synced rows and may not match sa_items indices.
+        # Our client-side fetch_item_prices handles all item detail lookups.
+        if self.get("is_systemair_quotation"):
+            return {}
+        return super().process_item_selection(item_idx)
 
 
 def before_save(doc, method=None):

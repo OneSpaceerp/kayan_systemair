@@ -52,13 +52,9 @@ app_include_css = "/assets/kayan_systemair/css/kayan_systemair.css"
 # Boot session
 boot_session = "kayan_systemair.startup.boot_session"
 
-# Override standard DocType classes
-# override_doctype_class = {}
-
-# DocType Class Override
-# override_doctype_class = {
-#     "Quotation": "kayan_systemair.custom.quotation.CustomQuotation"
-# }
+override_doctype_class = {
+    "Quotation": "kayan_systemair.custom.quotation.CustomQuotation"
+}
 
 # Whitelisted Methods
 # These are exposed as REST endpoints via frappe.call()
