@@ -92,6 +92,13 @@
     // ------------------------------------------------------------------
     frappe.ui.form.on('SystemAir Quotation Item', {
 
+        // Article number entered → look up item and prices
+        sa_article_no: function(frm, cdt, cdn) {
+            var row = frappe.get_doc(cdt, cdn);
+            if (!row.sa_article_no) return;
+            lookup_by_article_no(frm, cdt, cdn, row.sa_article_no);
+        },
+
         item_code: function(frm, cdt, cdn) {
             var row = frappe.get_doc(cdt, cdn);
             if (!row.item_code) return;
@@ -178,6 +185,31 @@
     }
 
     // ------------------------------------------------------------------
+    // Article number → look up item details and fill row
+    // ------------------------------------------------------------------
+    function lookup_by_article_no(frm, cdt, cdn, article_no) {
+        frappe.call({
+            method: 'kayan_systemair.api.get_article_details',
+            args: { article_no: article_no },
+            callback: function(r) {
+                if (!r.message) return;
+                var d = r.message;
+                frappe.model.set_value(cdt, cdn, 'item_code',          d.item_code);
+                frappe.model.set_value(cdt, cdn, 'item_name',          d.item_name);
+                frappe.model.set_value(cdt, cdn, 'germany_list_price',  flt(d.germany_list_price));
+                frappe.model.set_value(cdt, cdn, 'malaysia_list_price', flt(d.malaysia_list_price));
+                // Auto-fill EX price: prefer Malaysia, fall back to Germany, only if not yet set
+                var row = frappe.get_doc(cdt, cdn);
+                if (!flt(row.ex_price)) {
+                    var ex = flt(d.malaysia_list_price) || flt(d.germany_list_price);
+                    if (ex) frappe.model.set_value(cdt, cdn, 'ex_price', ex);
+                }
+                debounced_recalc(frm, cdt, cdn);
+            }
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Fetch prices when item_code changes on a row
     // ------------------------------------------------------------------
     function fetch_item_prices(frm, cdt, cdn, item_code) {
@@ -195,10 +227,17 @@
                     frappe.model.set_value(cdt, cdn, 'ex_price', flt(r.message.germany));
                 }
 
-                // Fetch item name
-                frappe.db.get_value('Item', item_code, 'item_name', function(res) {
-                    if (res && res.item_name) {
+                // Back-fill article number and item name from Item master
+                frappe.db.get_value('Item', item_code, ['item_name', 'sa_article_no'], function(res) {
+                    if (!res) return;
+                    if (res.item_name) {
                         frappe.model.set_value(cdt, cdn, 'item_name', res.item_name);
+                    }
+                    if (res.sa_article_no) {
+                        var cur = frappe.get_doc(cdt, cdn);
+                        if (!cur.sa_article_no) {
+                            frappe.model.set_value(cdt, cdn, 'sa_article_no', res.sa_article_no);
+                        }
                     }
                 });
 

@@ -12,6 +12,38 @@ frappe.ui.form.on('SystemAir Fan Item', {
     },
 
     // -----------------------------------------------------------------------
+    // Article number lookup — fills model code + prices if item found
+    // -----------------------------------------------------------------------
+    sa_article_no: function(frm) {
+        var article_no = (frm.doc.sa_article_no || '').trim();
+        if (!article_no) return;
+        frappe.call({
+            method: 'kayan_systemair.api.get_article_details',
+            args: { article_no: article_no },
+            callback: function(r) {
+                if (!r.message) {
+                    frappe.show_alert({
+                        message: __('No item found for article no: {0}', [article_no]),
+                        indicator: 'orange'
+                    });
+                    return;
+                }
+                var d = r.message;
+                frm.set_value('erp_item',      d.item_code);
+                frm.set_value('item_exists',   1);
+                frm.set_value('germany_price', flt(d.germany_list_price));
+                frm.set_value('malaysia_price', flt(d.malaysia_list_price));
+                if (d.sa_weight_kg) frm.set_value('approx_weight', flt(d.sa_weight_kg));
+                set_form_banners(frm);
+                frappe.show_alert({
+                    message: __('Found item: {0}', [d.item_code]),
+                    indicator: 'green'
+                });
+            }
+        });
+    },
+
+    // -----------------------------------------------------------------------
     // Type-key field triggers — all rebuild model code on change
     // -----------------------------------------------------------------------
     fan_model:         function(frm) { update_model_code(frm); },

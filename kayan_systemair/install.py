@@ -1,33 +1,81 @@
 import frappe
 from frappe import _
 
+# Model-level item groups created under the "SystemAir Fans" parent group.
+# Named "{MODEL} Model" to match the Item Group.xlsx convention.
+MODEL_GROUPS = [
+    "AXC Model", "AXR Model", "AXS Model", "AXCP Model", "AXCPV Model",
+    "AXCBF Model", "AJR Model", "AJ8 Model",
+    "DVV Model", "DVAX Model",
+    "TD Model", "VTR Model", "VTRN Model", "SWL Model",
+    "K Model", "KD Model", "KW Model", "KDH Model", "KT Model",
+    "KTO Model", "KTSB Model", "KTO Model",
+    "CBFA Model", "CBRD Model",
+    "BD Model", "BDT Model", "BDH Model",
+    "STAC Model", "STAQ Model",
+    "IMP Model", "IMPD Model",
+    "RS Model", "RSI Model", "RSH Model",
+    "CA Model", "CAWA Model",
+    "CDX Model", "CDXB Model",
+    "DO Model", "DOC Model", "DOZ Model",
+    "RV Model", "RVF Model", "RVZ Model",
+    "R Model", "RF Model",
+    "ILB Model", "ILBR Model",
+    "Accessories",
+]
+
 
 def after_install():
     """Run after the app is installed on a site."""
-    create_item_group()
+    create_item_groups()
     create_price_lists()
     create_roles()
     frappe.db.commit()
 
 
-def create_item_group():
-    """Create 'SystemAir Axial Fans' item group under Products."""
-    if frappe.db.exists("Item Group", "SystemAir Axial Fans"):
-        return
-
-    # Find parent group
-    parent = "Products"
+def create_item_groups():
+    """
+    Create "SystemAir Fans" parent group plus all model-level child groups.
+    Also keeps the original "SystemAir Axial Fans" leaf group for existing items.
+    """
+    parent_root = "Products"
     if not frappe.db.exists("Item Group", "Products"):
-        parent = "All Item Groups"
+        parent_root = "All Item Groups"
 
-    doc = frappe.get_doc({
-        "doctype": "Item Group",
-        "item_group_name": "SystemAir Axial Fans",
-        "parent_item_group": parent,
-        "is_group": 0,
-    })
-    doc.insert(ignore_permissions=True)
-    frappe.logger().info("Created Item Group: SystemAir Axial Fans")
+    # Create the parent group (is_group=1 so children can nest under it)
+    if not frappe.db.exists("Item Group", "SystemAir Fans"):
+        frappe.get_doc({
+            "doctype": "Item Group",
+            "item_group_name": "SystemAir Fans",
+            "parent_item_group": parent_root,
+            "is_group": 1,
+        }).insert(ignore_permissions=True)
+        frappe.logger().info("Created Item Group: SystemAir Fans")
+
+    # Create each model-level child group (is_group=0 = leaf)
+    seen = set()
+    for group_name in MODEL_GROUPS:
+        if group_name in seen:
+            continue
+        seen.add(group_name)
+        if not frappe.db.exists("Item Group", group_name):
+            frappe.get_doc({
+                "doctype": "Item Group",
+                "item_group_name": group_name,
+                "parent_item_group": "SystemAir Fans",
+                "is_group": 0,
+            }).insert(ignore_permissions=True)
+            frappe.logger().info(f"Created Item Group: {group_name}")
+
+    # Keep backward-compat leaf for items created before this version
+    if not frappe.db.exists("Item Group", "SystemAir Axial Fans"):
+        frappe.get_doc({
+            "doctype": "Item Group",
+            "item_group_name": "SystemAir Axial Fans",
+            "parent_item_group": "SystemAir Fans",
+            "is_group": 0,
+        }).insert(ignore_permissions=True)
+        frappe.logger().info("Created Item Group: SystemAir Axial Fans")
 
 
 def create_price_lists():

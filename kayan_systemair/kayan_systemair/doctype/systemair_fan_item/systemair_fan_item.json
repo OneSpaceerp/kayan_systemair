@@ -20,6 +20,7 @@
   "reversible",
   "config_suffix",
   "section_c",
+  "sa_article_no",
   "model_code",
   "item_exists",
   "erp_item",
@@ -137,6 +138,12 @@
    "fieldname": "section_c",
    "fieldtype": "Section Break",
    "label": "Auto-Generated & Lookup Fields"
+  },
+  {
+   "fieldname": "sa_article_no",
+   "fieldtype": "Data",
+   "label": "Article No. (Lookup)",
+   "description": "Enter a Systemair article number to auto-fill model, prices and weight"
   },
   {
    "description": "Auto-assembled from type-key fields",

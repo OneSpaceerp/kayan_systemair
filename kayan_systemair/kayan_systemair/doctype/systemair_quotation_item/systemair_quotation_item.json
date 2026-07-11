@@ -11,6 +11,7 @@
   "fan_type",
   "speed_type",
   "smoke_rating",
+  "origin",
   "sa_article_no",
   "airflow_ls",
   "esp_pa",
@@ -66,19 +67,25 @@
    "fieldname": "fan_type",
    "fieldtype": "Select",
    "label": "Fan Type",
-   "options": "\nAXC\nAXR\nAXS\nAXCP\nAXCPV\nAJR\nAJ8\nDVAX"
+   "options": "\nAxial Inline\nCentrifugal Inline\nInline Fan\nWall Mounted\nFan Section\nAxial Roof Top\nCentrifugal Roof Top\nInduction Jet Fan\nImpulse Jet Fan\nBelt Driven Box fan\nCentrifugal Box Fan\nCentrifugal Fan\nAccessories\nPlanum Fan\nSISW Fan\nHood Fan"
   },
   {
    "fieldname": "speed_type",
    "fieldtype": "Select",
    "label": "Speed",
-   "options": "\nSingle Speed\nTwo Speed\nVFD"
+   "options": "\nVibrable\nSingle\nDouble"
   },
   {
    "fieldname": "smoke_rating",
    "fieldtype": "Select",
    "label": "Smoke Rating",
-   "options": "\nNone\nB\nF"
+   "options": "\n300°C/2Hr\n400°C/2Hr\nAmbient\nExplosion\n120°C"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Select",
+   "label": "Origin",
+   "options": "\nChina\nSweden\nGermany\nMalaysia\nItaly\nUAE\nSlovenia\nEgypt\nTurkey\nUkraine"
   },
   {
    "fieldname": "sa_article_no",

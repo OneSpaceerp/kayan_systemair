@@ -12,7 +12,8 @@
   "column_break_1",
   "records_created",
   "records_updated",
-  "records_skipped"
+  "records_skipped",
+  "skip_reason"
  ],
  "fields": [
   {
@@ -67,6 +68,11 @@
    "fieldname": "records_skipped",
    "fieldtype": "Int",
    "label": "Records Skipped"
+  },
+  {
+   "fieldname": "skip_reason",
+   "fieldtype": "Long Text",
+   "label": "Skip Reason(s)"
   }
  ],
  "links": [],

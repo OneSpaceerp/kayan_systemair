@@ -89,6 +89,36 @@ def get_weight_for_diameter(diameter):
 
 
 @frappe.whitelist()
+def get_article_details(article_no):
+    """
+    Look up an Item by its SA article number and return pricing + metadata.
+
+    Returns:
+        dict | None: item details or None if not found
+    """
+    if not article_no:
+        return None
+
+    item_code = frappe.db.get_value("Item", {"sa_article_no": article_no}, "item_code")
+    if not item_code:
+        return None
+
+    item = frappe.get_cached_doc("Item", item_code)
+    germany = _get_price(item_code, "Systemair Germany 2026")
+    malaysia = _get_price(item_code, "Systemair Malaysia 2026")
+
+    return {
+        "item_code": item_code,
+        "item_name": item.item_name,
+        "germany_list_price": flt(germany),
+        "malaysia_list_price": flt(malaysia),
+        "item_group": item.item_group,
+        "sa_product_family": flt(getattr(item, "sa_product_family", "")),
+        "sa_weight_kg": flt(getattr(item, "sa_weight_kg", 0)),
+    }
+
+
+@frappe.whitelist()
 def get_price_config():
     """
     Return the full SystemAir Price Config singleton as a dict.
