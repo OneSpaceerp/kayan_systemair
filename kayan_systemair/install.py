@@ -30,6 +30,7 @@ def after_install():
     create_item_groups()
     create_price_lists()
     create_roles()
+    create_item_search_field_property_setter()
     frappe.db.commit()
 
 
@@ -101,6 +102,35 @@ def create_price_lists():
         doc = frappe.get_doc({"doctype": "Price List", **pl_data})
         doc.insert(ignore_permissions=True)
         frappe.logger().info(f"Created Price List: {pl_data['price_list_name']}")
+
+
+def create_item_search_field_property_setter():
+    """
+    Add sa_article_no to Item search_fields so users can search items by
+    Systemair article number in Link fields throughout the app.
+    """
+    desired_value = "item_name,sa_article_no"
+    existing = frappe.db.get_value(
+        "Property Setter",
+        {
+            "doc_type": "Item",
+            "doctype_or_field": "DocType",
+            "property": "search_fields",
+        },
+        "name",
+    )
+    if existing:
+        frappe.db.set_value("Property Setter", existing, "value", desired_value)
+    else:
+        frappe.get_doc({
+            "doctype": "Property Setter",
+            "doc_type": "Item",
+            "doctype_or_field": "DocType",
+            "field_name": "main",
+            "property": "search_fields",
+            "property_type": "Data",
+            "value": desired_value,
+        }).insert(ignore_permissions=True)
 
 
 def create_roles():

@@ -113,8 +113,11 @@ def get_article_details(article_no):
         "germany_list_price": flt(germany),
         "malaysia_list_price": flt(malaysia),
         "item_group": item.item_group,
-        "sa_product_family": flt(getattr(item, "sa_product_family", "")),
-        "sa_weight_kg": flt(getattr(item, "sa_weight_kg", 0)),
+        "product_family": getattr(item, "sa_product_family", "") or "",
+        "type_of_fan": getattr(item, "sa_type_of_fan", "") or "",
+        "primary_factory": getattr(item, "sa_primary_factory", "") or "",
+        "temperature_rate": getattr(item, "sa_temperature_rate", "") or "",
+        "weight_kg": flt(getattr(item, "sa_weight_kg", 0)),
     }
 
 

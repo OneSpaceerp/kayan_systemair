@@ -113,15 +113,57 @@ def _apply_defaults_to_items(doc):
             row.ex_price = flt(row.germany_list_price)
 
 
+def _compute_shipping_allocation(doc):
+    """
+    Two-pass shipping allocation (Excel COST sheet columns S, AD, AE).
+
+    Pass 1: compute basic_ex_price for every row.
+    Then determine total_shipping:
+      - Percent of Basic mode: total_basic × sa_shipping_rate / 100
+      - Lump Sum mode:         sa_total_shipping_eur (manual override)
+    Pass 2: allocate proportionally — shipping_i = basic_i × total_shipping / Σbasic
+
+    Returns dict {row.name: allocated_shipping_eur}.
+    """
+    rows = doc.get("sa_items") or []
+    basics = {}
+    for row in rows:
+        ex = flt(row.get("ex_price"))
+        if not ex:
+            basics[row.name] = 0.0
+            continue
+        qty = flt(row.get("qty")) or 1.0
+        disc = flt(row.get("supplier_discount"))
+        basics[row.name] = flt(ex * qty * (1.0 - disc / 100.0), 4)
+
+    total_basic = sum(basics.values())
+
+    shipping_mode = doc.get("sa_shipping_mode") or "Percent of Basic"
+    if shipping_mode == "Lump Sum":
+        total_shipping = flt(doc.get("sa_total_shipping_eur") or 0.0, 4)
+    else:
+        rate = flt(doc.get("sa_shipping_rate") or 12.0)
+        total_shipping = flt(total_basic * rate / 100.0, 4)
+
+    if not total_basic:
+        return {row.name: 0.0 for row in rows}
+
+    return {
+        name: flt(basic * total_shipping / total_basic, 4)
+        for name, basic in basics.items()
+    }
+
+
 def _compute_all_item_pricing(doc):
     """Run pricing engine on every SA item row that has an EX price."""
+    shipping_map = _compute_shipping_allocation(doc)
+
     errors = []
     for row in (doc.get("sa_items") or []):
         if not flt(row.get("ex_price")):
-            # Skip rows with no price — will be caught on submit if still missing
             continue
         try:
-            compute_pricing(row, doc)
+            compute_pricing(row, doc, allocated_shipping=shipping_map.get(row.name, 0.0))
         except frappe.ValidationError as e:
             errors.append(str(e))
 
@@ -150,24 +192,30 @@ def _compute_accessory_totals(doc):
 
 def _compute_quotation_totals(doc):
     """
-    Compute and set:
-    - sa_total_cif_eur   : sum of all item CIF values (EUR)
-    - sa_grand_total_egp : sum of all item total_price_egp + accessory total_price_egp
+    Compute and set SA summary fields (mirrors Excel COST row-2 mirror block):
+    - sa_total_basic_eur : Σ basic_ex_price (EUR) — Excel col P totals row
+    - sa_total_cif_eur   : Σ cif (EUR)            — Excel col T totals row
+    - sa_total_ddp_egp   : Σ ddp_cost (EGP)       — Excel col Y totals row
+    - sa_grand_total_egp : Σ total_price_egp + accessories (EGP) — Excel col AB
     - sa_effective_margin: (grand_total - total_ddp) / grand_total × 100
     """
+    total_basic_eur = 0.0
     total_cif_eur = 0.0
-    grand_total_egp = 0.0
     total_ddp_egp = 0.0
+    grand_total_egp = 0.0
 
     for row in (doc.get("sa_items") or []):
+        total_basic_eur += flt(row.get("basic_ex_price"))
         total_cif_eur += flt(row.get("cif"))
-        grand_total_egp += flt(row.get("total_price_egp"))
         total_ddp_egp += flt(row.get("ddp_cost"))
+        grand_total_egp += flt(row.get("total_price_egp"))
 
     for row in (doc.get("sa_accessories") or []):
         grand_total_egp += flt(row.get("total_price_egp"))
 
+    doc.sa_total_basic_eur = flt(total_basic_eur, 2)
     doc.sa_total_cif_eur = flt(total_cif_eur, 2)
+    doc.sa_total_ddp_egp = flt(total_ddp_egp, 2)
     doc.sa_grand_total_egp = flt(grand_total_egp, 2)
 
     if grand_total_egp > 0:

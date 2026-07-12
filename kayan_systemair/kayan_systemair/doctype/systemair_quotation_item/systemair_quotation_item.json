@@ -8,6 +8,7 @@
   "item_name",
   "sa_sn",
   "location",
+  "reference",
   "fan_type",
   "speed_type",
   "smoke_rating",
@@ -62,6 +63,11 @@
    "fieldname": "location",
    "fieldtype": "Data",
    "label": "Location / Tag"
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Reference"
   },
   {
    "fieldname": "fan_type",

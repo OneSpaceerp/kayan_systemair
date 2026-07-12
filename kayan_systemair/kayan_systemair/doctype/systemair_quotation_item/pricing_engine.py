@@ -24,7 +24,7 @@ from frappe import _
 from frappe.utils import flt
 
 
-def compute_pricing(item_row, quotation_doc):
+def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
     """
     Compute all 16 pricing steps for a single SystemAir Quotation Item row
     and write results back to item_row.
@@ -114,14 +114,18 @@ def compute_pricing(item_row, quotation_doc):
     )
 
     # ------------------------------------------------------------------ #
-    # Step 7 — Shipping Cost = basic_ex_price × (shipping_rate / 100)     #
-    # Note: shipping is applied to basic_ex_price, not final_ex_price      #
+    # Step 7 — Shipping Cost                                               #
+    # Lump-sum mode: caller pre-allocates proportionally (basic_i/Σbasic) #
+    # Percent mode:  basic_ex_price × (shipping_rate / 100)               #
     # ------------------------------------------------------------------ #
-    shipping_rate = flt(
-        item_row.get("shipping_rate") or quotation_doc.get("sa_shipping_rate") or default_shipping_rate,
-        4,
-    )
-    shipping_cost = flt(basic_ex_price * (shipping_rate / 100.0), 4)
+    if allocated_shipping is not None:
+        shipping_cost = flt(allocated_shipping, 4)
+    else:
+        shipping_rate = flt(
+            item_row.get("shipping_rate") or quotation_doc.get("sa_shipping_rate") or default_shipping_rate,
+            4,
+        )
+        shipping_cost = flt(basic_ex_price * (shipping_rate / 100.0), 4)
 
     # ------------------------------------------------------------------ #
     # Step 8 — CIF = final_ex_price + shipping_cost                        #
