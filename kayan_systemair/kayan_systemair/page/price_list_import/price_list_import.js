@@ -244,10 +244,11 @@ PriceListImportPage = class PriceListImportPage {
             callback: function(r) {
                 if (r.message) {
                     var msg = r.message;
-                    frappe.show_alert({
-                        message: __('Mapping loaded: {0} rows, {1} skipped', [msg.loaded, msg.skipped]),
-                        indicator: 'green'
-                    });
+                    var text = __('Mapping loaded: {0} rows, {1} skipped', [msg.loaded, msg.skipped]);
+                    if (msg.groups_created) {
+                        text += ' — ' + __('{0} new item groups created', [msg.groups_created]);
+                    }
+                    frappe.show_alert({ message: text, indicator: 'green' });
                     me.load_mapping_status();
                 }
             }
