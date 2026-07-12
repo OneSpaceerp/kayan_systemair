@@ -302,12 +302,19 @@ def get_price_lists():
 
 def _run_import(file_url, price_list, sheet_name, log_name):
     """
-    Background job: read Excel file row by row, create/update Item + Item Price.
+    Background job: read Excel file, create/update Item + Item Price.
     Rows without a resolved item group (from mapping or file column) are skipped.
     New groups found in the file are auto-created under 'SystemAir Fans'.
-    Updates the SystemAir Import Log on completion.
+
+    Performance & visibility:
+    - Preloads the group map, existing Items, and existing Item Prices into
+      dicts (3 queries) instead of 4-6 lookups per row.
+    - Sets status to 'Running' at start and updates the log counts every
+      PROGRESS_EVERY rows so the UI poll shows live progress.
     """
     import openpyxl
+
+    PROGRESS_EVERY = 250
 
     created = 0
     updated = 0
@@ -316,7 +323,23 @@ def _run_import(file_url, price_list, sheet_name, log_name):
     error_msg = None
     _created_groups = set()  # cache groups created in this import run
 
+    def _progress(status="Running"):
+        frappe.db.set_value(
+            "SystemAir Import Log",
+            log_name,
+            {
+                "status": status,
+                "records_created": created,
+                "records_updated": updated,
+                "records_skipped": skipped,
+            },
+            update_modified=False,
+        )
+        frappe.db.commit()
+
     try:
+        _progress("Running")
+
         file_doc = frappe.get_doc("File", {"file_url": file_url})
         file_path = file_doc.get_full_path()
 
@@ -337,7 +360,28 @@ def _run_import(file_url, price_list, sheet_name, log_name):
                 "Cannot detect required columns (item_name/item_no, sales_price)"
             )
 
+        # ---- Preload lookup caches (3 queries instead of ~5 per row) ----
+        group_map = dict(frappe.db.sql(
+            "SELECT article_no, item_group FROM `tabSystemAir Item Group Map`"
+        ))
+        items_by_code = {}
+        items_by_name = {}
+        for name, item_name_db in frappe.db.sql(
+            "SELECT name, item_name FROM `tabItem`"
+        ):
+            items_by_code[name] = name
+            if item_name_db:
+                items_by_name.setdefault(item_name_db, name)
+        price_rows = dict(frappe.db.sql(
+            """SELECT item_code, name FROM `tabItem Price`
+               WHERE price_list = %s AND selling = 1""",
+            (price_list,),
+        ))
+
         for row_data in rows[1:]:
+            if (created + updated + skipped) % PROGRESS_EVERY == 0:
+                _progress("Running")
+
             mapped = _map_row(row_data, col_map)
             if not mapped:
                 skipped += 1
@@ -352,11 +396,7 @@ def _run_import(file_url, price_list, sheet_name, log_name):
                 continue
 
             # --- Resolve item group (mapping first, file column fallback) ---
-            item_group = None
-            if article_no:
-                item_group = frappe.db.get_value(
-                    "SystemAir Item Group Map", article_no, "item_group"
-                )
+            item_group = group_map.get(article_no) if article_no else None
             if not item_group:
                 item_group_file = mapped.get("item_group_file") or ""
                 if item_group_file:
@@ -381,22 +421,66 @@ def _run_import(file_url, price_list, sheet_name, log_name):
                     )
                 continue
 
-            # --- Get or create Item with enriched attributes ---
-            item_code = _get_or_create_item(
-                item_name,
-                article_no=article_no,
-                item_group=item_group,
-                type_of_fan=mapped.get("type_of_fan") or "",
-                family_name=mapped.get("family_name") or "",
-                primary_factory=mapped.get("primary_factory") or "",
-                temperature_rate=mapped.get("temperature_rate") or "",
-            )
+            # --- ERPNext forbids < and > in DOCUMENT names (item_code) only.
+            # Keep the exact Excel name for the item_name display field and
+            # sanitize only the code. Identical for all rows without < or >.
+            display_name = item_name          # exact Excel name
+            item_name = _sanitize_item_name(item_name)  # used as item_code
 
-            was_created = _upsert_item_price(item_code, price_list, price)
-            if was_created:
-                created += 1
-            else:
-                updated += 1
+            # --- Per-row processing: one bad row must never abort the job ---
+            frappe.db.savepoint("sa_import_row")
+            try:
+                # --- Get or create Item (cached lookup) ---
+                existing_code = (
+                    items_by_code.get(item_name[:140])
+                    or items_by_name.get(display_name[:140])
+                    or items_by_name.get(item_name[:140])
+                )
+                item_code = _get_or_create_item(
+                    item_name,
+                    article_no=article_no,
+                    item_group=item_group,
+                    type_of_fan=mapped.get("type_of_fan") or "",
+                    family_name=mapped.get("family_name") or "",
+                    primary_factory=mapped.get("primary_factory") or "",
+                    temperature_rate=mapped.get("temperature_rate") or "",
+                    existing_code=existing_code,
+                    display_name=display_name,
+                )
+                if not existing_code:
+                    items_by_code[item_code] = item_code
+                    items_by_name.setdefault(display_name[:140], item_code)
+
+                # --- Upsert Item Price (cached lookup) ---
+                price_name = price_rows.get(item_code)
+                if price_name:
+                    frappe.db.set_value(
+                        "Item Price", price_name, "price_list_rate", price,
+                        update_modified=False,
+                    )
+                    updated += 1
+                else:
+                    ip = frappe.get_doc({
+                        "doctype": "Item Price",
+                        "item_code": item_code,
+                        "price_list": price_list,
+                        "price_list_rate": price,
+                        "selling": 1,
+                        "currency": "EUR",
+                        "valid_from": nowdate(),
+                    })
+                    ip.insert(ignore_permissions=True)
+                    price_rows[item_code] = ip.name
+                    created += 1
+            except Exception as row_err:
+                skipped += 1
+                if len(skip_reasons) < 20:
+                    skip_reasons.append(
+                        f"{article_no or item_name}: {str(row_err)[:120]}"
+                    )
+                # Roll back only this row's changes and keep going.
+                frappe.db.rollback(save_point="sa_import_row")
+                continue
 
         wb.close()
         frappe.db.commit()
@@ -427,6 +511,25 @@ def _run_import(file_url, price_list, sheet_name, log_name):
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
+
+def _sanitize_item_name(name):
+    """
+    ERPNext document names cannot contain '<' or '>'.
+    Replace comparison operators with words (e.g. 'VDD1 <= 75kw' →
+    'VDD1 up to 75kw') and collapse double spaces.
+    """
+    if not name:
+        return name
+    name = (
+        name.replace("<=", "up to")
+            .replace(">=", "at least")
+            .replace("<", "below ")
+            .replace(">", "over ")
+    )
+    while "  " in name:
+        name = name.replace("  ", " ")
+    return name.strip()
+
 
 def _ensure_parent_group():
     """Guarantee the 'SystemAir Fans' parent group exists."""
@@ -578,39 +681,54 @@ def _get_or_create_item(
     family_name="",
     primary_factory="",
     temperature_rate="",
+    existing_code=None,
+    display_name=None,
 ):
     """
     Return existing item_code or create a new Item and return its code.
     Always updates enrichment fields (article_no, type, family, factory,
     temperature_rate) on both create and update paths.
-    """
-    existing = frappe.db.get_value("Item", {"item_code": item_name}, "name")
-    if not existing:
-        existing = frappe.db.get_value("Item", {"item_name": item_name}, "name")
 
-    clean_fan_type   = _normalize_type_of_fan(type_of_fan)
-    clean_temp_rate  = _normalize_temperature_rate(temperature_rate)
+    item_name is used as the document name (item_code) and must be free of
+    < and >. display_name (optional) is the EXACT Excel item name and is
+    stored in the Item.item_name display field, preserving characters that
+    are illegal in document names.
+
+    Pass existing_code (from a preloaded cache) to skip the two per-row
+    lookup queries; pass None to force the DB lookup (interactive callers).
+    """
+    display_name = display_name or item_name
+    existing = existing_code
+    if existing is None:
+        existing = frappe.db.get_value("Item", {"item_code": item_name}, "name")
+        if not existing:
+            existing = frappe.db.get_value("Item", {"item_name": item_name}, "name")
+
+    clean_fan_type  = _normalize_type_of_fan(type_of_fan)
+    clean_temp_rate = _normalize_temperature_rate(temperature_rate)
 
     if existing:
         update_data = {}
         if article_no:
-            update_data["sa_article_no"]      = article_no[:140]
+            update_data["sa_article_no"] = article_no[:140]
         if clean_fan_type:
-            update_data["sa_type_of_fan"]     = clean_fan_type
+            update_data["sa_type_of_fan"] = clean_fan_type
         if family_name:
-            update_data["sa_product_family"]  = family_name[:140]
+            update_data["sa_product_family"] = family_name[:140]
         if primary_factory:
             update_data["sa_primary_factory"] = primary_factory[:140]
         if clean_temp_rate:
             update_data["sa_temperature_rate"] = clean_temp_rate
+        if display_name and display_name != item_name:
+            update_data["item_name"] = display_name[:140]
         if update_data:
-            frappe.db.set_value("Item", existing, update_data)
+            frappe.db.set_value("Item", existing, update_data, update_modified=False)
         return existing
 
     item = frappe.get_doc({
         "doctype": "Item",
         "item_code": item_name[:140],
-        "item_name": item_name[:140],
+        "item_name": display_name[:140],
         "item_group": item_group,
         "stock_uom": "Nos",
         "is_purchase_item": 1,
