@@ -7,9 +7,10 @@
   "sa_article_no",
   "item_code",
   "accessory_name",
+  "linked_fan_sn",
   "qty",
   "unit_price_eur",
-  "total_price_egp"
+  "total_price_eur"
  ],
  "fields": [
   {
@@ -31,6 +32,14 @@
    "label": "Accessory Name"
   },
   {
+   "fieldname": "linked_fan_sn",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Linked Fan SN",
+   "options": "",
+   "description": "Link to a fan row so this accessory cost flows through the fan pricing chain"
+  },
+  {
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Float",
@@ -47,11 +56,10 @@
    "precision": "2"
   },
   {
-   "fieldname": "total_price_egp",
-   "fieldtype": "Currency",
+   "fieldname": "total_price_eur",
+   "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Total Price (EGP)",
-   "options": "EGP",
+   "label": "Total Price (EUR)",
    "precision": "2",
    "read_only": 1
   }

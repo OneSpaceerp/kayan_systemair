@@ -8,13 +8,12 @@ Validation Test Cases (all must pass):
 ---------------------------------------
 Test 1 — Standard fan, 0% customs, 50% margin:
     ex_price=1000, qty=2, supplier_discount=20, additional_discount=0,
-    customs_rate=0, margin_percent=50, eur_egp_rate=50, shipping_rate=12
+    customs_rate=0, margin_percent=50, currency_rate=1.0, shipping_rate=12
     Expected: basic_ex_price=1600.0, shipping_cost=192.0, cif=1792.0
 
-Test 2 — Excel parity:
-    ex_price=500, qty=1, supplier_discount=0, additional_discount=0,
-    customs_rate=0, margin_percent=50, eur_egp_rate=50, shipping_rate=12
-    Expected: cif=560.0, total_price_egp=560×1.1235×1.5×50×1.14
+Test 2 — Excel REV7 parity (F-01, qty=2, rate=1):
+    ex_price=2500, qty=2, supplier_discount=24.5, shipping_allocated=929.8161
+    Expected: cif≈4704.60, total_price_eur≈7516.34, unit_price_eur≈3758.17
 
 Test 3 — Zero EX price must raise frappe.ValidationError
 """
@@ -24,7 +23,7 @@ from frappe import _
 from frappe.utils import flt
 
 
-def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
+def compute_pricing(item_row, quotation_doc, allocated_shipping=None, accessory_extra=0.0):
     """
     Compute all 16 pricing steps for a single SystemAir Quotation Item row
     and write results back to item_row.
@@ -45,10 +44,10 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
         13. ddp_cost           = cif × cost_factors × currency_rate
                                   × vat_multiplier × (1 + customs_rate/100)
         14. margin             — percent
-        15. total_price_egp    = cif × cost_factors × (1 + margin/100)
+        15. total_price_eur    = cif × cost_factors × (1 + margin/100)
                                   × currency_rate × vat_multiplier
                                   × (1 + customs_rate/100)
-        16. unit_price_egp     = total_price_egp / qty
+        16. unit_price_eur     = total_price_eur / qty
 
     Raises:
         frappe.ValidationError: if ex_price is 0 or missing.
@@ -93,10 +92,11 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
         )
 
     # ------------------------------------------------------------------ #
-    # Step 4 — Basic EX Price = ex_price × qty × (1 − supplier_discount%) #
+    # Step 4 — Basic EX Price                                              #
+    # = fan_cost + linked_accessory_costs                                  #
     # ------------------------------------------------------------------ #
     basic_ex_price = flt(
-        ex_price * qty * (1.0 - supplier_discount / 100.0),
+        ex_price * qty * (1.0 - supplier_discount / 100.0) + flt(accessory_extra, 4),
         4,
     )
 
@@ -118,6 +118,7 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
     # Lump-sum mode: caller pre-allocates proportionally (basic_i/Σbasic) #
     # Percent mode:  basic_ex_price × (shipping_rate / 100)               #
     # ------------------------------------------------------------------ #
+    shipping_rate = 0.0  # initialised here; overwritten in percent mode
     if allocated_shipping is not None:
         shipping_cost = flt(allocated_shipping, 4)
     else:
@@ -148,14 +149,11 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
     vat_multiplier = flt(1.0 + vat_rate / 100.0, 6)  # e.g. 1.14
 
     # ------------------------------------------------------------------ #
-    # Step 12 — Currency Rate (EUR → EGP)                                  #
+    # Step 12 — Currency Rate (EUR → quote currency); defaults to 1.0      #
     # ------------------------------------------------------------------ #
-    currency_rate = flt(quotation_doc.get("sa_eur_egp_rate") or config.default_currency_rate, 4)
+    currency_rate = flt(quotation_doc.get("sa_eur_egp_rate") or 1.0, 4)
     if currency_rate <= 0:
-        frappe.throw(
-            _("EUR/EGP Exchange Rate must be greater than zero."),
-            frappe.ValidationError,
-        )
+        currency_rate = 1.0  # safe fallback; no throw
 
     # ------------------------------------------------------------------ #
     # Step 13 — DDP Cost                                                   #
@@ -175,19 +173,19 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
     margin_multiplier = flt(1.0 + margin_percent / 100.0, 6)
 
     # ------------------------------------------------------------------ #
-    # Step 15 — Total Price (EGP)                                          #
+    # Step 15 — Total Price (EUR when currency_rate = 1.0)                 #
     # total_price = cif × cost_factors × (1 + margin%) × currency_rate    #
     #               × vat_multiplier × (1 + customs%)                     #
     # ------------------------------------------------------------------ #
-    total_price_egp = flt(
+    total_price_eur = flt(
         cif * cost_factors * margin_multiplier * currency_rate * vat_multiplier * customs_multiplier,
         4,
     )
 
     # ------------------------------------------------------------------ #
-    # Step 16 — Unit Price (EGP) = total_price / qty                      #
+    # Step 16 — Unit Price (EUR) = total_price / qty                       #
     # ------------------------------------------------------------------ #
-    unit_price_egp = flt(total_price_egp / qty, 4)
+    unit_price_eur = flt(total_price_eur / qty, 4)
 
     # ------------------------------------------------------------------ #
     # Write results back to item_row                                       #
@@ -198,10 +196,10 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
     item_row.final_ex_price = flt(final_ex_price, 2)
     item_row.cif = flt(cif, 2)
     item_row.ddp_cost = flt(ddp_cost, 2)
-    item_row.unit_price_egp = flt(unit_price_egp, 2)
-    item_row.total_price_egp = flt(total_price_egp, 2)
-    item_row.rate = flt(unit_price_egp, 2)
-    item_row.amount = flt(total_price_egp, 2)
+    item_row.unit_price_eur = flt(unit_price_eur, 2)
+    item_row.total_price_eur = flt(total_price_eur, 2)
+    item_row.rate = flt(unit_price_eur, 2)
+    item_row.amount = flt(total_price_eur, 2)
 
     return {
         "ex_price": ex_price,
@@ -219,6 +217,6 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None):
         "currency_rate": currency_rate,
         "ddp_cost": item_row.ddp_cost,
         "margin_percent": margin_percent,
-        "total_price_egp": item_row.total_price_egp,
-        "unit_price_egp": item_row.unit_price_egp,
+        "total_price_eur": item_row.total_price_eur,
+        "unit_price_eur": item_row.unit_price_eur,
     }

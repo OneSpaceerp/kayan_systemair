@@ -1,2 +1,4 @@
 # Patches are applied in the order listed here.
 # Format: app.module.patch_function
+kayan_systemair.kayan_systemair.patches.v1_client_uat_round1
+

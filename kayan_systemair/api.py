@@ -91,18 +91,47 @@ def get_weight_for_diameter(diameter):
 @frappe.whitelist()
 def get_article_details(article_no):
     """
-    Look up an Item by its SA article number and return pricing + metadata.
+    Look up Item(s) by SA article number and return pricing + metadata.
 
     Returns:
-        dict | None: item details or None if not found
+        None                           — article_no not found
+        dict                           — exactly one match (normal case)
+        {"multiple": True, "items": []}— multiple models share this article_no;
+                                         client must show a selection dialog
     """
     if not article_no:
         return None
 
-    item_code = frappe.db.get_value("Item", {"sa_article_no": article_no}, "item_code")
-    if not item_code:
+    matches = frappe.db.get_all(
+        "Item",
+        filters={"sa_article_no": article_no},
+        fields=["item_code"],
+    )
+    if not matches:
         return None
 
+    if len(matches) > 1:
+        items = []
+        for m in matches:
+            ic = m["item_code"]
+            it = frappe.get_cached_doc("Item", ic)
+            germany = _get_price(ic, "Systemair Germany 2026")
+            malaysia = _get_price(ic, "Systemair Malaysia 2026")
+            items.append({
+                "item_code": ic,
+                "item_name": it.item_name,
+                "germany_list_price": flt(germany),
+                "malaysia_list_price": flt(malaysia),
+                "item_group": it.item_group,
+                "product_family": getattr(it, "sa_product_family", "") or "",
+                "type_of_fan": getattr(it, "sa_type_of_fan", "") or "",
+                "primary_factory": getattr(it, "sa_primary_factory", "") or "",
+                "temperature_rate": getattr(it, "sa_temperature_rate", "") or "",
+                "weight_kg": flt(getattr(it, "sa_weight_kg", 0)),
+            })
+        return {"multiple": True, "items": items}
+
+    item_code = matches[0]["item_code"]
     item = frappe.get_cached_doc("Item", item_code)
     germany = _get_price(item_code, "Systemair Germany 2026")
     malaysia = _get_price(item_code, "Systemair Malaysia 2026")

@@ -15,7 +15,9 @@
   "origin",
   "sa_article_no",
   "airflow_ls",
+  "airflow_unit",
   "esp_pa",
+  "esp_unit",
   "qty",
   "germany_list_price",
   "malaysia_list_price",
@@ -26,13 +28,14 @@
   "margin_percent",
   "approx_weight_kg",
   "section_pricing",
+  "accessories_cost_eur",
   "basic_ex_price",
   "shipping_cost",
   "final_ex_price",
   "cif",
   "ddp_cost",
-  "unit_price_egp",
-  "total_price_egp",
+  "unit_price_eur",
+  "total_price_eur",
   "rate",
   "amount"
  ],
@@ -101,14 +104,30 @@
   {
    "fieldname": "airflow_ls",
    "fieldtype": "Float",
-   "label": "Airflow (l/s)",
+   "label": "Airflow",
    "precision": "2"
+  },
+  {
+   "fieldname": "airflow_unit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Flow Unit",
+   "options": "l/s\nCFM\nm³/h",
+   "default": "l/s"
   },
   {
    "fieldname": "esp_pa",
    "fieldtype": "Float",
-   "label": "ESP (Pa)",
+   "label": "ESP",
    "precision": "2"
+  },
+  {
+   "fieldname": "esp_unit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Pressure Unit",
+   "options": "Pa\nIN.WG",
+   "default": "Pa"
   },
   {
    "fieldname": "qty",
@@ -176,6 +195,13 @@
    "label": "Pricing Breakdown"
   },
   {
+   "fieldname": "accessories_cost_eur",
+   "fieldtype": "Float",
+   "label": "Linked Accessories Cost (EUR)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
    "fieldname": "basic_ex_price",
    "fieldtype": "Float",
    "label": "Basic EX Price (EUR)",
@@ -205,27 +231,24 @@
   },
   {
    "fieldname": "ddp_cost",
-   "fieldtype": "Currency",
-   "label": "DDP Cost (EGP)",
-   "options": "EGP",
+   "fieldtype": "Float",
+   "label": "DDP Cost (EUR)",
    "precision": "2",
    "read_only": 1
   },
   {
-   "fieldname": "unit_price_egp",
-   "fieldtype": "Currency",
+   "fieldname": "unit_price_eur",
+   "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Unit Price (EGP)",
-   "options": "EGP",
+   "label": "Unit Price (EUR)",
    "precision": "2",
    "read_only": 1
   },
   {
-   "fieldname": "total_price_egp",
-   "fieldtype": "Currency",
+   "fieldname": "total_price_eur",
+   "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Total Price (EGP)",
-   "options": "EGP",
+   "label": "Total Price (EUR)",
    "precision": "2",
    "read_only": 1
   },
@@ -233,7 +256,7 @@
    "fieldname": "rate",
    "fieldtype": "Currency",
    "label": "Rate",
-   "options": "EGP",
+   "options": "currency",
    "precision": "2",
    "read_only": 1
   },
@@ -241,7 +264,7 @@
    "fieldname": "amount",
    "fieldtype": "Currency",
    "label": "Amount",
-   "options": "EGP",
+   "options": "currency",
    "precision": "2",
    "read_only": 1
   }

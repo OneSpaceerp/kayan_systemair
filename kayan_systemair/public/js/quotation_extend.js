@@ -8,12 +8,15 @@
  *  - Toggle SA sections on/off based on is_systemair_quotation flag
  *  - Debounced per-row recalculation (preview only; server recalculates on save)
  *  - Two-pass shipping allocation: Percent of Basic (default) or Lump Sum
+ *  - Issue 4: linked-accessory costs folded into fan pricing chain
  *  - Header-level defaults propagation
  *  - Article number → auto-fill item, prices, fan_type, origin, smoke_rating
+ *  - Issue 2: multiple items per article_no → selection dialog
  *  - item_code change → back-fill article_no + same attributes
+ *  - Issue 3: per-row airflow_unit / esp_unit; linked_fan_sn dropdown in accessories
  *  - Accessory table: article_no / item_code → auto-fetch Germany price
  *  - Margin colour indicators (green/amber/red)
- *  - Grand total footer update
+ *  - Grand total footer update (unlinked accessories only)
  *  - "Add Fan Item" shortcut button
  */
 
@@ -55,7 +58,7 @@
                         row.item_name = first.item_name || first.item_code;
                         row.uom = 'Nos';
                         row.qty = flt(first.qty) || 1;
-                        row.rate = flt(first.unit_price_egp) || 0;
+                        row.rate = flt(first.unit_price_eur) || 0;
                         row.conversion_factor = 1;
                         row.ordered_qty = 0;
                     }
@@ -124,7 +127,7 @@
     });
 
     // ------------------------------------------------------------------
-    // SystemAir Accessory Item child table hooks (§6)
+    // SystemAir Accessory Item child table hooks
     // ------------------------------------------------------------------
     frappe.ui.form.on('SystemAir Accessory Item', {
 
@@ -138,6 +141,28 @@
             var row = frappe.get_doc(cdt, cdn);
             if (!row.item_code) return;
             fetch_accessory_price_by_item(frm, cdt, cdn, row.item_code);
+        },
+
+        // Populate linked_fan_sn dropdown from current fan rows (Issue 4)
+        form_render: function(frm, cdt, cdn) {
+            _refresh_linked_fan_sn_options(frm, cdt, cdn);
+        },
+
+        linked_fan_sn: function(frm) {
+            // Re-price all fans because allocation changes when a link is added/removed
+            recalculate_all_rows(frm);
+        },
+
+        unit_price_eur: function(frm) {
+            recalculate_all_rows(frm);
+        },
+
+        qty: function(frm, cdt, cdn) {
+            // Recompute this accessory's own total, then re-price linked fan
+            var row = frappe.get_doc(cdt, cdn);
+            var total = flt(row.qty) * flt(row.unit_price_eur);
+            frappe.model.set_value(cdt, cdn, 'total_price_eur', flt(total, 2));
+            recalculate_all_rows(frm);
         },
     });
 
@@ -162,13 +187,14 @@
             is_sa && frm.doc.sa_shipping_mode !== 'Lump Sum');
         frm.toggle_display('sa_total_shipping_eur',
             is_sa && frm.doc.sa_shipping_mode === 'Lump Sum');
-        frm.toggle_display('sa_flow_unit',           is_sa);
-        frm.toggle_display('sa_esp_unit',            is_sa);
+        frm.toggle_display('sa_no_of_containers',    is_sa);
         frm.toggle_display('sa_default_customs',     is_sa);
         frm.toggle_display('sa_total_cif_eur',       is_sa);
         frm.toggle_display('sa_total_basic_eur',     is_sa);
-        frm.toggle_display('sa_total_ddp_egp',       is_sa);
-        frm.toggle_display('sa_grand_total_egp',     is_sa);
+        frm.toggle_display('sa_total_ddp_eur',       is_sa);
+        frm.toggle_display('sa_grand_total_eur',     is_sa);
+        frm.toggle_display('sa_grand_total_egp_info',
+            is_sa && flt(frm.doc.sa_eur_egp_rate) !== 1.0);
         frm.toggle_display('sa_effective_margin',    is_sa);
         frm.toggle_display('print_internal',         is_sa);
     }
@@ -183,7 +209,8 @@
                 if (!r.message) return;
                 var cfg = r.message;
                 if (!flt(frm.doc.sa_eur_egp_rate)) {
-                    frm.set_value('sa_eur_egp_rate', cfg.default_currency_rate);
+                    // Default to 1.0 (pure EUR) unless config has a different rate
+                    frm.set_value('sa_eur_egp_rate', cfg.default_currency_rate || 1.0);
                 }
                 if (!flt(frm.doc.sa_default_margin)) {
                     frm.set_value('sa_default_margin', cfg.default_margin);
@@ -213,6 +240,7 @@
     // ------------------------------------------------------------------
     // Article number → look up item + fill prices, fan_type, origin,
     //                   smoke_rating, ex_price (§2 auto-fill)
+    // Handles single-item and multi-item (Issue 2) responses.
     // ------------------------------------------------------------------
     function lookup_by_article_no(frm, cdt, cdn, article_no) {
         frappe.call({
@@ -220,36 +248,68 @@
             args: { article_no: article_no },
             callback: function(r) {
                 if (!r.message) return;
-                var d = r.message;
-                frappe.model.set_value(cdt, cdn, 'item_code',          d.item_code);
-                frappe.model.set_value(cdt, cdn, 'item_name',          d.item_name);
-                frappe.model.set_value(cdt, cdn, 'germany_list_price',  flt(d.germany_list_price));
-                frappe.model.set_value(cdt, cdn, 'malaysia_list_price', flt(d.malaysia_list_price));
 
-                var row = frappe.get_doc(cdt, cdn);
-
-                // Fan attribute auto-fill (only if empty, user override wins)
-                if (!row.fan_type && d.type_of_fan) {
-                    var mt = _map_type_of_fan(d.type_of_fan);
-                    if (mt) frappe.model.set_value(cdt, cdn, 'fan_type', mt);
-                }
-                if (!row.origin && d.primary_factory) {
-                    var mo = _map_factory_to_origin(d.primary_factory);
-                    if (mo) frappe.model.set_value(cdt, cdn, 'origin', mo);
-                }
-                if (!row.smoke_rating) {
-                    var ms = _map_temperature_to_smoke(d.temperature_rate || '');
-                    if (ms) frappe.model.set_value(cdt, cdn, 'smoke_rating', ms);
+                if (r.message.multiple) {
+                    _show_item_selection_dialog(frm, cdt, cdn, r.message.items);
+                    return;
                 }
 
-                // Default EX price: Malaysia first, Germany fallback
-                if (!flt(row.ex_price)) {
-                    var ex = flt(d.malaysia_list_price) || flt(d.germany_list_price);
-                    if (ex) frappe.model.set_value(cdt, cdn, 'ex_price', ex);
-                }
-                debounced_recalc(frm, cdt, cdn);
+                _fill_item_details(frm, cdt, cdn, r.message);
             }
         });
+    }
+
+    // ------------------------------------------------------------------
+    // Selection dialog for duplicate article numbers (Issue 2)
+    // ------------------------------------------------------------------
+    function _show_item_selection_dialog(frm, cdt, cdn, items) {
+        var options = items.map(function(it) { return it.item_code; }).join('\n');
+        frappe.prompt([{
+            label: __('Select Model'),
+            fieldname: 'item_code',
+            fieldtype: 'Select',
+            options: options,
+            reqd: 1,
+            description: __('Multiple models share this article number. Pick the correct one.')
+        }], function(vals) {
+            var selected = items.find(function(it) {
+                return it.item_code === vals.item_code;
+            });
+            if (selected) {
+                _fill_item_details(frm, cdt, cdn, selected);
+            }
+        }, __('Multiple items found for Article No.'), __('Select'));
+    }
+
+    // ------------------------------------------------------------------
+    // Fill a fan-row from an item-detail dict (single result or selection)
+    // ------------------------------------------------------------------
+    function _fill_item_details(frm, cdt, cdn, d) {
+        frappe.model.set_value(cdt, cdn, 'item_code',          d.item_code);
+        frappe.model.set_value(cdt, cdn, 'item_name',          d.item_name);
+        frappe.model.set_value(cdt, cdn, 'germany_list_price',  flt(d.germany_list_price));
+        frappe.model.set_value(cdt, cdn, 'malaysia_list_price', flt(d.malaysia_list_price));
+
+        var row = frappe.get_doc(cdt, cdn);
+
+        if (!row.fan_type && d.type_of_fan) {
+            var mt = _map_type_of_fan(d.type_of_fan);
+            if (mt) frappe.model.set_value(cdt, cdn, 'fan_type', mt);
+        }
+        if (!row.origin && d.primary_factory) {
+            var mo = _map_factory_to_origin(d.primary_factory);
+            if (mo) frappe.model.set_value(cdt, cdn, 'origin', mo);
+        }
+        if (!row.smoke_rating) {
+            var ms = _map_temperature_to_smoke(d.temperature_rate || '');
+            if (ms) frappe.model.set_value(cdt, cdn, 'smoke_rating', ms);
+        }
+
+        if (!flt(row.ex_price)) {
+            var ex = flt(d.malaysia_list_price) || flt(d.germany_list_price);
+            if (ex) frappe.model.set_value(cdt, cdn, 'ex_price', ex);
+        }
+        debounced_recalc(frm, cdt, cdn);
     }
 
     // ------------------------------------------------------------------
@@ -270,7 +330,6 @@
                     if (ex) frappe.model.set_value(cdt, cdn, 'ex_price', ex);
                 }
 
-                // Back-fill article_no and fan attributes from Item master
                 frappe.db.get_value('Item', item_code,
                     ['item_name', 'sa_article_no', 'sa_type_of_fan', 'sa_primary_factory', 'sa_temperature_rate'],
                     function(res) {
@@ -303,7 +362,7 @@
     }
 
     // ------------------------------------------------------------------
-    // Accessory article_no → fetch item + Germany price (§6)
+    // Accessory article_no → fetch item + price
     // ------------------------------------------------------------------
     function lookup_accessory_by_article_no(frm, cdt, cdn, article_no) {
         frappe.call({
@@ -311,18 +370,23 @@
             args: { article_no: article_no },
             callback: function(r) {
                 if (!r.message) return;
-                var d = r.message;
+                var d = r.message.multiple ? r.message.items[0] : r.message;
                 if (d.item_code) frappe.model.set_value(cdt, cdn, 'item_code',      d.item_code);
                 if (d.item_name) frappe.model.set_value(cdt, cdn, 'accessory_name', d.item_name);
                 var price = flt(d.germany_list_price) || flt(d.malaysia_list_price);
-                if (price)      frappe.model.set_value(cdt, cdn, 'unit_price_eur',  price);
-                update_quotation_totals(frm);
+                if (price) {
+                    frappe.model.set_value(cdt, cdn, 'unit_price_eur', price);
+                    var row = frappe.get_doc(cdt, cdn);
+                    frappe.model.set_value(cdt, cdn, 'total_price_eur',
+                        flt(flt(row.qty) * price, 2));
+                }
+                recalculate_all_rows(frm);
             }
         });
     }
 
     // ------------------------------------------------------------------
-    // Accessory item_code → fetch Germany price + back-fill name/article
+    // Accessory item_code → fetch price + back-fill name/article
     // ------------------------------------------------------------------
     function fetch_accessory_price_by_item(frm, cdt, cdn, item_code) {
         frappe.call({
@@ -331,7 +395,12 @@
             callback: function(r) {
                 if (!r.message) return;
                 var price = flt(r.message.germany) || flt(r.message.malaysia);
-                if (price) frappe.model.set_value(cdt, cdn, 'unit_price_eur', price);
+                if (price) {
+                    frappe.model.set_value(cdt, cdn, 'unit_price_eur', price);
+                    var row = frappe.get_doc(cdt, cdn);
+                    frappe.model.set_value(cdt, cdn, 'total_price_eur',
+                        flt(flt(row.qty) * price, 2));
+                }
 
                 frappe.db.get_value('Item', item_code, ['item_name', 'sa_article_no'], function(res) {
                     if (!res) return;
@@ -345,9 +414,42 @@
                         }
                     }
                 });
-                update_quotation_totals(frm);
+                recalculate_all_rows(frm);
             }
         });
+    }
+
+    // ------------------------------------------------------------------
+    // Issue 4: populate linked_fan_sn Select from current fan SNs
+    // ------------------------------------------------------------------
+    function _refresh_linked_fan_sn_options(frm, cdt, cdn) {
+        var sns = (frm.doc.sa_items || [])
+            .map(function(r) { return r.sa_sn || ''; })
+            .filter(function(s) { return s; });
+
+        var grid = frm.fields_dict['sa_accessories'] &&
+                   frm.fields_dict['sa_accessories'].grid;
+        if (!grid) return;
+
+        var grid_row = grid.get_row(cdn);
+        if (grid_row && grid_row.fields_dict && grid_row.fields_dict.linked_fan_sn) {
+            grid_row.fields_dict.linked_fan_sn.df.options = '\n' + sns.join('\n');
+            grid_row.fields_dict.linked_fan_sn.refresh();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Issue 4: sum linked-accessory costs for a given fan SN
+    // ------------------------------------------------------------------
+    function get_accessory_extra_for_sn(frm, sn) {
+        if (!sn) return 0;
+        var total = 0;
+        (frm.doc.sa_accessories || []).forEach(function(acc) {
+            if ((acc.linked_fan_sn || '') === sn) {
+                total += flt(acc.qty) * flt(acc.unit_price_eur);
+            }
+        });
+        return total;
     }
 
     // ------------------------------------------------------------------
@@ -385,12 +487,11 @@
     }
 
     // ------------------------------------------------------------------
-    // Two-pass shipping allocation + per-row calculation (§3)
+    // Two-pass shipping allocation + per-row calculation
     //
     // Percent of Basic: shipping_i = basic_i × rate / 100
-    //   → reduces to the current per-row flat-rate formula
     // Lump Sum:         shipping_i = basic_i × total_shipping / Σbasic
-    //   → requires all basics first (pass 1), then allocate (pass 2)
+    //   → requires all basics (including accessory extras) first
     // ------------------------------------------------------------------
     function recalculate_all_rows(frm) {
         var rows = frm.doc.sa_items || [];
@@ -405,7 +506,8 @@
             rows.forEach(function(row) {
                 var ex = flt(row.ex_price);
                 if (!ex) { basics[row.name] = 0; return; }
-                var b = flt(ex * (flt(row.qty) || 1) * (1 - flt(row.supplier_discount) / 100));
+                var acc_extra = get_accessory_extra_for_sn(frm, row.sa_sn || '');
+                var b = flt(ex * (flt(row.qty) || 1) * (1 - flt(row.supplier_discount) / 100) + acc_extra);
                 basics[row.name] = b;
                 total_basic += b;
             });
@@ -448,6 +550,7 @@
     // Client-side pricing chain (mirrors pricing_engine.py)
     //   allocated_shipping: pre-computed EUR value (lump-sum mode)
     //                       or null (percent mode → compute from rate)
+    // Issue 4: adds linked-accessory extra to basic_ex before the chain
     // ------------------------------------------------------------------
     function calculate_row(frm, cdt, cdn, allocated_shipping) {
         var row = frappe.get_doc(cdt, cdn);
@@ -462,15 +565,19 @@
         var customs_rate     = flt(row.customs_rate);
         var margin_percent   = flt(row.margin_percent) || flt(frm.doc.sa_default_margin) || 50;
         var shipping_rate    = flt(frm.doc.sa_shipping_rate) || 12;
-        var eur_egp_rate     = flt(frm.doc.sa_eur_egp_rate) || 50;
+        var eur_rate         = flt(frm.doc.sa_eur_egp_rate) || 1.0;
 
         var cf = (frappe.boot.systemair_config && frappe.boot.systemair_config.combined_cost_factor)
                  ? flt(frappe.boot.systemair_config.combined_cost_factor) : 1.1235;
         var vat_rate = (frappe.boot.systemair_config && frappe.boot.systemair_config.vat_rate)
                        ? flt(frappe.boot.systemair_config.vat_rate) : 14;
 
-        // Step 4 — Basic EX
-        var basic_ex = flt(ex_price * qty * (1 - supplier_disc / 100), 4);
+        // Issue 4 — linked accessory extra added to basic
+        var acc_extra = get_accessory_extra_for_sn(frm, row.sa_sn || '');
+        frappe.model.set_value(cdt, cdn, 'accessories_cost_eur', flt(acc_extra, 2));
+
+        // Step 4 — Basic EX (fan cost + linked accessories)
+        var basic_ex = flt(ex_price * qty * (1 - supplier_disc / 100) + acc_extra, 4);
         // Step 6 — Final EX
         var final_ex = flt(basic_ex * (1 - additional_disc / 100), 4);
         // Step 7 — Shipping
@@ -485,28 +592,29 @@
         // Steps 11-13
         var vat_mult     = flt(1 + vat_rate / 100, 6);
         var customs_mult = flt(1 + customs_rate / 100, 6);
-        var ddp          = flt(cif * cf * eur_egp_rate * vat_mult * customs_mult, 2);
+        var ddp          = flt(cif * cf * eur_rate * vat_mult * customs_mult, 2);
         // Steps 14-16
         var margin_mult  = flt(1 + margin_percent / 100, 6);
-        var total_egp    = flt(cif * cf * margin_mult * eur_egp_rate * vat_mult * customs_mult, 2);
-        var unit_egp     = flt(total_egp / qty, 2);
+        var total_eur    = flt(cif * cf * margin_mult * eur_rate * vat_mult * customs_mult, 2);
+        var unit_eur     = flt(total_eur / qty, 2);
 
         frappe.model.set_value(cdt, cdn, 'basic_ex_price',  flt(basic_ex, 2));
         frappe.model.set_value(cdt, cdn, 'shipping_cost',   flt(shipping, 2));
         frappe.model.set_value(cdt, cdn, 'final_ex_price',  flt(final_ex, 2));
         frappe.model.set_value(cdt, cdn, 'cif',             flt(cif, 2));
         frappe.model.set_value(cdt, cdn, 'ddp_cost',        ddp);
-        frappe.model.set_value(cdt, cdn, 'unit_price_egp',  unit_egp);
-        frappe.model.set_value(cdt, cdn, 'total_price_egp', total_egp);
-        frappe.model.set_value(cdt, cdn, 'rate',            unit_egp);
-        frappe.model.set_value(cdt, cdn, 'amount',          total_egp);
+        frappe.model.set_value(cdt, cdn, 'unit_price_eur',  unit_eur);
+        frappe.model.set_value(cdt, cdn, 'total_price_eur', total_eur);
+        frappe.model.set_value(cdt, cdn, 'rate',            unit_eur);
+        frappe.model.set_value(cdt, cdn, 'amount',          total_eur);
 
         update_quotation_totals(frm);
         update_margin_color_row(frm, cdt, cdn);
     }
 
     // ------------------------------------------------------------------
-    // Update quotation-level totals (mirrors Excel row 2 mirror block)
+    // Update quotation-level totals
+    // Issue 4: only UNLINKED accessories contribute to grand total
     // ------------------------------------------------------------------
     function update_quotation_totals(frm) {
         if (!frm.doc.is_systemair_quotation) return;
@@ -517,10 +625,14 @@
             total_basic  += flt(row.basic_ex_price);
             total_cif    += flt(row.cif);
             total_ddp    += flt(row.ddp_cost);
-            grand_total  += flt(row.total_price_egp);
+            grand_total  += flt(row.total_price_eur);
         });
+
+        // Linked accessories are already in fan totals — skip them here
         (frm.doc.sa_accessories || []).forEach(function(row) {
-            grand_total += flt(row.total_price_egp);
+            if (!(row.linked_fan_sn || '').trim()) {
+                grand_total += flt(row.total_price_eur);
+            }
         });
 
         var eff_margin = (grand_total > 0)
@@ -529,14 +641,20 @@
 
         frm.doc.sa_total_basic_eur  = flt(total_basic, 2);
         frm.doc.sa_total_cif_eur    = flt(total_cif, 2);
-        frm.doc.sa_total_ddp_egp    = flt(total_ddp, 2);
-        frm.doc.sa_grand_total_egp  = flt(grand_total, 2);
+        frm.doc.sa_total_ddp_eur    = flt(total_ddp, 2);
+        frm.doc.sa_grand_total_eur  = flt(grand_total, 2);
         frm.doc.sa_effective_margin = eff_margin;
+
+        var rate = flt(frm.doc.sa_eur_egp_rate) || 1.0;
+        frm.doc.sa_grand_total_egp_info = rate !== 1.0
+            ? flt(grand_total * rate, 2)
+            : 0;
 
         frm.refresh_field('sa_total_basic_eur');
         frm.refresh_field('sa_total_cif_eur');
-        frm.refresh_field('sa_total_ddp_egp');
-        frm.refresh_field('sa_grand_total_egp');
+        frm.refresh_field('sa_total_ddp_eur');
+        frm.refresh_field('sa_grand_total_eur');
+        frm.refresh_field('sa_grand_total_egp_info');
         frm.refresh_field('sa_effective_margin');
     }
 
@@ -573,7 +691,6 @@
     // Attribute mapping helpers
     // ------------------------------------------------------------------
 
-    // Map Item.sa_type_of_fan → quotation row fan_type Select options
     function _map_type_of_fan(val) {
         if (!val) return '';
         var lc = val.toLowerCase().trim();
@@ -585,14 +702,12 @@
             'wall mounted':         'Wall Mounted',
             'induction jet fan':    'Induction Jet Fan',
             'impulse jet fan':      'Impulse Jet Fan',
-            'impulse jet fan':      'Impulse Jet Fan',
             'accessories':          'Accessories',
             'centrifugal box fan':  'Centrifugal Box Fan',
         };
         return m[lc] || '';
     }
 
-    // Map Item.sa_primary_factory → quotation row origin Select options
     function _map_factory_to_origin(val) {
         if (!val) return '';
         var lc = val.toLowerCase().trim();
@@ -612,8 +727,6 @@
         return m[lc] || '';
     }
 
-    // Map Item.sa_temperature_rate → quotation row smoke_rating Select options
-    // Spec: none → Ambient; explicit values map 1:1 with case adjustment
     function _map_temperature_to_smoke(val) {
         if (!val) return 'Ambient';
         var lc = val.toLowerCase().trim();
@@ -622,7 +735,7 @@
             '400°c/2hr':          '400°C/2Hr',
             '120°c continuous':   '120°C',
             'explosion proof':    'Explosion',
-            '600°c/2hr':          '',  // no matching smoke_rating option
+            '600°c/2hr':          '',
         };
         if (lc in m) return m[lc] || 'Ambient';
         return 'Ambient';

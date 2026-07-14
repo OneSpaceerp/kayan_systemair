@@ -28,12 +28,37 @@ frappe.ui.form.on('SystemAir Fan Item', {
                     });
                     return;
                 }
+                if (r.message.multiple) {
+                    var options = r.message.items.map(function(it) {
+                        return it.item_code + ' — ' + it.item_name;
+                    });
+                    frappe.prompt([{
+                        label: __('Select Model'),
+                        fieldname: 'item_code',
+                        fieldtype: 'Select',
+                        options: r.message.items.map(function(it) { return it.item_code; }).join('\n'),
+                        reqd: 1
+                    }], function(vals) {
+                        var d = r.message.items.find(function(it) {
+                            return it.item_code === vals.item_code;
+                        });
+                        if (d) {
+                            frm.set_value('erp_item', d.item_code);
+                            frm.set_value('item_exists', 1);
+                            frm.set_value('germany_price', flt(d.germany_list_price));
+                            frm.set_value('malaysia_price', flt(d.malaysia_list_price));
+                            if (d.weight_kg) frm.set_value('approx_weight', flt(d.weight_kg));
+                            set_form_banners(frm);
+                        }
+                    }, __('Multiple items found for Article No.'), __('Select'));
+                    return;
+                }
                 var d = r.message;
                 frm.set_value('erp_item',      d.item_code);
                 frm.set_value('item_exists',   1);
                 frm.set_value('germany_price', flt(d.germany_list_price));
                 frm.set_value('malaysia_price', flt(d.malaysia_list_price));
-                if (d.sa_weight_kg) frm.set_value('approx_weight', flt(d.sa_weight_kg));
+                if (d.weight_kg) frm.set_value('approx_weight', flt(d.weight_kg));
                 set_form_banners(frm);
                 frappe.show_alert({
                     message: __('Found item: {0}', [d.item_code]),
