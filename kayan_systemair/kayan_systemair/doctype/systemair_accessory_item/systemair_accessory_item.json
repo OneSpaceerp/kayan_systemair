@@ -33,11 +33,10 @@
   },
   {
    "fieldname": "linked_fan_sn",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Linked Fan SN",
-   "options": "",
-   "description": "Link to a fan row so this accessory cost flows through the fan pricing chain"
+   "description": "Type the Fan Ref. (SN) from the fan rows above to fold this cost into the fan pricing chain"
   },
   {
    "default": "1",

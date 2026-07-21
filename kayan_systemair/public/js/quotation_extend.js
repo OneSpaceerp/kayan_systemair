@@ -13,7 +13,7 @@
  *  - Article number → auto-fill item, prices, fan_type, origin, smoke_rating
  *  - Issue 2: multiple items per article_no → selection dialog
  *  - item_code change → back-fill article_no + same attributes
- *  - Issue 3: per-row airflow_unit / esp_unit; linked_fan_sn dropdown in accessories
+ *  - Issue 3: per-row airflow_unit / esp_unit; linked_fan_sn (Data) typed by user
  *  - Accessory table: article_no / item_code → auto-fetch Germany price
  *  - Margin colour indicators (green/amber/red)
  *  - Grand total footer update (unlinked accessories only)
@@ -33,7 +33,6 @@
             if (frm.doc.is_systemair_quotation) {
                 setup_sa_toolbar(frm);
                 apply_margin_colors(frm);
-                _update_linked_fan_sn_meta(frm);
                 recalculate_all_rows(frm);
                 update_quotation_totals(frm);
             }
@@ -111,13 +110,8 @@
             fetch_item_prices(frm, cdt, cdn, row.item_code);
         },
 
-        // SN change → update Linked Fan SN dropdown options in accessories grid
         sa_sn: function(frm) {
-            _update_linked_fan_sn_meta(frm);
-            // Refresh the accessories grid so the inline cell editor picks up new options
-            var acc_grid = frm.fields_dict.sa_accessories &&
-                           frm.fields_dict.sa_accessories.grid;
-            if (acc_grid) acc_grid.refresh();
+            recalculate_all_rows(frm);
         },
 
         // Per-row field changes → debounced recalculate
@@ -151,11 +145,6 @@
             var row = frappe.get_doc(cdt, cdn);
             if (!row.item_code) return;
             fetch_accessory_price_by_item(frm, cdt, cdn, row.item_code);
-        },
-
-        // Populate linked_fan_sn dropdown from current fan rows (Issue 4)
-        form_render: function(frm, cdt, cdn) {
-            _refresh_linked_fan_sn_options(frm, cdt, cdn);
         },
 
         linked_fan_sn: function(frm) {
@@ -427,39 +416,6 @@
                 recalculate_all_rows(frm);
             }
         });
-    }
-
-    // ------------------------------------------------------------------
-    // Issue 4: push current fan SNs into the linked_fan_sn Select meta.
-    //
-    // Frappe's inline cell editor reads options from frappe.meta at the
-    // moment the cell is clicked, so we must update the meta BEFORE the
-    // user clicks.  Called from refresh and from the sa_sn change event.
-    // ------------------------------------------------------------------
-    function _update_linked_fan_sn_meta(frm) {
-        var sns = (frm.doc.sa_items || [])
-            .map(function(r) { return r.sa_sn || ''; })
-            .filter(function(s) { return s; });
-        var options_str = '\n' + sns.join('\n');
-        var meta_field = frappe.meta.get_docfield('SystemAir Accessory Item', 'linked_fan_sn');
-        if (meta_field) meta_field.options = options_str;
-        return options_str;
-    }
-
-    // Called from form_render (expanded row form) — also refreshes the live widget.
-    function _refresh_linked_fan_sn_options(frm, cdt, cdn) {
-        var options_str = _update_linked_fan_sn_meta(frm);
-
-        // Also update the widget inside the currently-open expanded row form.
-        // In Frappe v16 the live form is at grid.open_grid_row.grid_form.
-        var grid = frm.fields_dict['sa_accessories'] &&
-                   frm.fields_dict['sa_accessories'].grid;
-        if (!grid) return;
-        var row_form = (grid.open_grid_row && grid.open_grid_row.grid_form) || null;
-        if (row_form && row_form.fields_dict && row_form.fields_dict.linked_fan_sn) {
-            row_form.fields_dict.linked_fan_sn.df.options = options_str;
-            row_form.fields_dict.linked_fan_sn.refresh();
-        }
     }
 
     // ------------------------------------------------------------------
