@@ -426,15 +426,22 @@
         var sns = (frm.doc.sa_items || [])
             .map(function(r) { return r.sa_sn || ''; })
             .filter(function(s) { return s; });
+        var options_str = '\n' + sns.join('\n');
 
+        // Keep the cached meta in sync so future row-opens also see the options
+        var meta_field = frappe.meta.get_docfield('SystemAir Accessory Item', 'linked_fan_sn');
+        if (meta_field) meta_field.options = options_str;
+
+        // Update the currently-open expanded row form.
+        // In Frappe v16 the live form is at grid.open_grid_row.grid_form,
+        // not at grid.get_row(cdn).
         var grid = frm.fields_dict['sa_accessories'] &&
                    frm.fields_dict['sa_accessories'].grid;
         if (!grid) return;
-
-        var grid_row = grid.get_row(cdn);
-        if (grid_row && grid_row.fields_dict && grid_row.fields_dict.linked_fan_sn) {
-            grid_row.fields_dict.linked_fan_sn.df.options = '\n' + sns.join('\n');
-            grid_row.fields_dict.linked_fan_sn.refresh();
+        var row_form = (grid.open_grid_row && grid.open_grid_row.grid_form) || null;
+        if (row_form && row_form.fields_dict && row_form.fields_dict.linked_fan_sn) {
+            row_form.fields_dict.linked_fan_sn.df.options = options_str;
+            row_form.fields_dict.linked_fan_sn.refresh();
         }
     }
 
