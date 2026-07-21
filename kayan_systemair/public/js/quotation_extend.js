@@ -33,6 +33,7 @@
             if (frm.doc.is_systemair_quotation) {
                 setup_sa_toolbar(frm);
                 apply_margin_colors(frm);
+                _update_linked_fan_sn_meta(frm);
                 recalculate_all_rows(frm);
                 update_quotation_totals(frm);
             }
@@ -108,6 +109,15 @@
             var row = frappe.get_doc(cdt, cdn);
             if (!row.item_code) return;
             fetch_item_prices(frm, cdt, cdn, row.item_code);
+        },
+
+        // SN change → update Linked Fan SN dropdown options in accessories grid
+        sa_sn: function(frm) {
+            _update_linked_fan_sn_meta(frm);
+            // Refresh the accessories grid so the inline cell editor picks up new options
+            var acc_grid = frm.fields_dict.sa_accessories &&
+                           frm.fields_dict.sa_accessories.grid;
+            if (acc_grid) acc_grid.refresh();
         },
 
         // Per-row field changes → debounced recalculate
@@ -420,21 +430,28 @@
     }
 
     // ------------------------------------------------------------------
-    // Issue 4: populate linked_fan_sn Select from current fan SNs
+    // Issue 4: push current fan SNs into the linked_fan_sn Select meta.
+    //
+    // Frappe's inline cell editor reads options from frappe.meta at the
+    // moment the cell is clicked, so we must update the meta BEFORE the
+    // user clicks.  Called from refresh and from the sa_sn change event.
     // ------------------------------------------------------------------
-    function _refresh_linked_fan_sn_options(frm, cdt, cdn) {
+    function _update_linked_fan_sn_meta(frm) {
         var sns = (frm.doc.sa_items || [])
             .map(function(r) { return r.sa_sn || ''; })
             .filter(function(s) { return s; });
         var options_str = '\n' + sns.join('\n');
-
-        // Keep the cached meta in sync so future row-opens also see the options
         var meta_field = frappe.meta.get_docfield('SystemAir Accessory Item', 'linked_fan_sn');
         if (meta_field) meta_field.options = options_str;
+        return options_str;
+    }
 
-        // Update the currently-open expanded row form.
-        // In Frappe v16 the live form is at grid.open_grid_row.grid_form,
-        // not at grid.get_row(cdn).
+    // Called from form_render (expanded row form) — also refreshes the live widget.
+    function _refresh_linked_fan_sn_options(frm, cdt, cdn) {
+        var options_str = _update_linked_fan_sn_meta(frm);
+
+        // Also update the widget inside the currently-open expanded row form.
+        // In Frappe v16 the live form is at grid.open_grid_row.grid_form.
         var grid = frm.fields_dict['sa_accessories'] &&
                    frm.fields_dict['sa_accessories'].grid;
         if (!grid) return;
