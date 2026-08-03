@@ -275,38 +275,76 @@ def _compute_quotation_totals(doc):
 
 def _sync_to_standard_items(doc):
     """
-    Sync sa_items and sa_accessories into the standard items table so ERPNext validation passes.
+    Sync sa_items (and unlinked sa_accessories) into the standard ERPNext items table.
+
+    Rules:
+    - Linked accessories are NOT added as separate rows; their cost is already
+      folded into the fan's unit_price_eur via the accessory_extra pricing chain.
+    - The fan row's item_name is extended with the linked accessory names so the
+      print format shows "Fan Model + Accessory 1 + Accessory 2" on one line.
+    - amount is set explicitly (rate × qty) because calculate_taxes_and_totals
+      may have already run before this hook, leaving amount = 0 if not set here.
     """
     doc.set("items", [])
 
+    # Build {sa_sn: [accessory display names]} for linked accessories
+    linked_acc_names = {}
+    for acc in (doc.get("sa_accessories") or []):
+        sn = (acc.get("linked_fan_sn") or "").strip()
+        if not sn:
+            continue
+        label = (acc.get("accessory_name") or acc.get("item_code") or "").strip()
+        if label:
+            linked_acc_names.setdefault(sn, []).append(label)
+
+    # Fan rows — linked-accessory cost already included in unit_price_eur
     for row in (doc.get("sa_items") or []):
         item_code = row.get("item_code")
         if not item_code:
             continue
 
+        sn = (row.get("sa_sn") or "").strip()
+        base_name = row.get("item_name") or item_code
+        accs = linked_acc_names.get(sn, [])
+        display_name = (base_name + " + " + " + ".join(accs)) if accs else base_name
+
+        qty  = flt(row.get("qty")) or 1
+        rate = flt(row.get("unit_price_eur"))
+
         doc.append("items", {
-            "item_code": item_code,
-            "item_name": row.get("item_name") or item_code,
-            "qty": flt(row.get("qty")) or 1,
-            "rate": flt(row.get("unit_price_eur")),
-            "uom": "Nos",
+            "item_code":        item_code,
+            "item_name":        display_name,
+            "description":      display_name,
+            "qty":              qty,
+            "uom":              "Nos",
             "conversion_factor": 1.0,
-            "ordered_qty": 0,
-            "description": row.get("item_name") or item_code,
+            "price_list_rate":  rate,
+            "rate":             rate,
+            "amount":           flt(rate * qty, 2),
+            "ordered_qty":      0,
         })
 
-    for row in (doc.get("sa_accessories") or []):
-        item_code = row.get("item_code")
+    # Unlinked accessories only — linked ones are already in the fan rows above
+    for acc in (doc.get("sa_accessories") or []):
+        item_code = acc.get("item_code")
         if not item_code:
             continue
+        if (acc.get("linked_fan_sn") or "").strip():
+            continue
+
+        acc_name = (acc.get("accessory_name") or item_code).strip()
+        qty  = flt(acc.get("qty")) or 1
+        rate = flt(acc.get("unit_price_eur"))
 
         doc.append("items", {
-            "item_code": item_code,
-            "item_name": row.get("accessory_name") or item_code,
-            "qty": flt(row.get("qty")) or 1,
-            "rate": flt(row.get("unit_price_eur")),
-            "uom": "Nos",
+            "item_code":        item_code,
+            "item_name":        acc_name,
+            "description":      acc_name,
+            "qty":              qty,
+            "uom":              "Nos",
             "conversion_factor": 1.0,
-            "ordered_qty": 0,
-            "description": row.get("accessory_name") or item_code,
+            "price_list_rate":  rate,
+            "rate":             rate,
+            "amount":           flt(rate * qty, 2),
+            "ordered_qty":      0,
         })

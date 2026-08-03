@@ -59,6 +59,8 @@
                         row.uom = 'Nos';
                         row.qty = flt(first.qty) || 1;
                         row.rate = flt(first.unit_price_eur) || 0;
+                        row.price_list_rate = row.rate;
+                        row.amount = flt(row.rate * row.qty, 2);
                         row.conversion_factor = 1;
                         row.ordered_qty = 0;
                     }
