@@ -30,17 +30,30 @@ class CustomQuotation(Quotation):
         return super().process_item_selection(item_idx)
 
 
+def before_validate(doc, method=None):
+    """
+    Runs before AccountsController.validate() so conversion_rate is already set
+    when ERPNext checks whether to look up a Currency Exchange record.
+    """
+    if not doc.get("is_systemair_quotation"):
+        return
+    doc.currency = "EUR"
+    if not flt(doc.get("sa_eur_egp_rate")):
+        doc.sa_eur_egp_rate = 1.0
+    doc.conversion_rate = flt(doc.sa_eur_egp_rate)
+
+
 def before_save(doc, method=None):
     """
-    Triggered before every Quotation save.
+    Triggered on the validate event (fires before mandatory-field check).
     Only processes SA fields if is_systemair_quotation == 1.
     """
     if not doc.get("is_systemair_quotation"):
         return
 
+    # currency/conversion_rate already set in before_validate; re-apply defensively
     doc.currency = "EUR"
     _ensure_eur_egp_rate(doc)
-    # Suppress ERPNext's automatic Currency Exchange lookup — we carry the rate ourselves.
     doc.conversion_rate = flt(doc.get("sa_eur_egp_rate") or 1.0)
     _apply_defaults_to_items(doc)
     _compute_accessory_totals(doc)

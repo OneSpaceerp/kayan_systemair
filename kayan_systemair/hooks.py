@@ -30,6 +30,9 @@ fixtures = [
 # Document Events
 doc_events = {
     "Quotation": {
+        # before_validate fires before AccountsController.validate() so we can
+        # pre-seed conversion_rate and suppress ERPNext's Currency Exchange lookup.
+        "before_validate": "kayan_systemair.custom.quotation.before_validate",
         # validate fires before _validate_mandatory() in both insert and update paths,
         # ensuring _sync_to_standard_items runs before ERPNext's mandatory field check.
         "validate": "kayan_systemair.custom.quotation.before_save",
