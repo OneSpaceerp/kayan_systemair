@@ -40,6 +40,8 @@ def before_save(doc, method=None):
 
     doc.currency = "EUR"
     _ensure_eur_egp_rate(doc)
+    # Suppress ERPNext's automatic Currency Exchange lookup — we carry the rate ourselves.
+    doc.conversion_rate = flt(doc.get("sa_eur_egp_rate") or 1.0)
     _apply_defaults_to_items(doc)
     _compute_accessory_totals(doc)
     _compute_all_item_pricing(doc)
