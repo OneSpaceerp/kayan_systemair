@@ -64,6 +64,7 @@ override_doctype_class = {
 # No need to list here — use @frappe.whitelist() decorator in api.py
 
 # After install / migrate — restore standard ERPNext workspaces
+before_migrate = "kayan_systemair.setup.before_migrate"
 after_install = "kayan_systemair.setup.after_install"
 after_migrate = "kayan_systemair.setup.after_migrate"
 
