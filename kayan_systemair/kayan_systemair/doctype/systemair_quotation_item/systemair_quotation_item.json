@@ -86,8 +86,9 @@
   },
   {
    "fieldname": "smoke_rating",
-   "fieldtype": "Data",
-   "label": "Smoke Rating"
+   "fieldtype": "Link",
+   "label": "Smoke Rating",
+   "options": "SystemAir Smoke Rating"
   },
   {
    "fieldname": "origin",

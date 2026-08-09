@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2026-08-10 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "in_list_view": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-10 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kayan Systemair",
+ "name": "SystemAir Smoke Rating",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 0,
+   "read": 1,
+   "role": "Sales User"
+  },
+  {
+   "permlevel": 0,
+   "read": 1,
+   "role": "Sales Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 0
+}
