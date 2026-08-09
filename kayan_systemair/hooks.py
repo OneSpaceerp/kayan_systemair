@@ -63,8 +63,9 @@ override_doctype_class = {
 # These are exposed as REST endpoints via frappe.call()
 # No need to list here — use @frappe.whitelist() decorator in api.py
 
-# After migrate
-# after_migrate = ["kayan_systemair.setup.after_migrate"]
+# After install / migrate — restore standard ERPNext workspaces
+after_install = "kayan_systemair.setup.after_install"
+after_migrate = "kayan_systemair.setup.after_migrate"
 
 # Website
 # website_generators = ["Web Page"]
