@@ -86,9 +86,8 @@
   },
   {
    "fieldname": "smoke_rating",
-   "fieldtype": "Select",
-   "label": "Smoke Rating",
-   "options": "\n300°C/2Hr\n400°C/2Hr\nAmbient\nExplosion\n120°C"
+   "fieldtype": "Data",
+   "label": "Smoke Rating"
   },
   {
    "fieldname": "origin",

@@ -9,6 +9,7 @@
   "accessory_name",
   "linked_fan_sn",
   "qty",
+  "supplier_discount",
   "unit_price_eur",
   "total_price_eur"
  ],
@@ -46,6 +47,13 @@
    "label": "Qty",
    "precision": "2",
    "reqd": 1
+  },
+  {
+   "fieldname": "supplier_discount",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Supplier Discount %",
+   "precision": "2"
   },
   {
    "fieldname": "unit_price_eur",

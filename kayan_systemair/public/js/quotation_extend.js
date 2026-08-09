@@ -154,15 +154,18 @@
             recalculate_all_rows(frm);
         },
 
-        unit_price_eur: function(frm) {
+        supplier_discount: function(frm, cdt, cdn) {
+            _recompute_acc_total(cdt, cdn);
+            recalculate_all_rows(frm);
+        },
+
+        unit_price_eur: function(frm, cdt, cdn) {
+            _recompute_acc_total(cdt, cdn);
             recalculate_all_rows(frm);
         },
 
         qty: function(frm, cdt, cdn) {
-            // Recompute this accessory's own total, then re-price linked fan
-            var row = frappe.get_doc(cdt, cdn);
-            var total = flt(row.qty) * flt(row.unit_price_eur);
-            frappe.model.set_value(cdt, cdn, 'total_price_eur', flt(total, 2));
+            _recompute_acc_total(cdt, cdn);
             recalculate_all_rows(frm);
         },
     });
@@ -421,6 +424,18 @@
     }
 
     // ------------------------------------------------------------------
+    // Recompute and write total_price_eur for a single accessory row
+    // (qty × unit_price × (1 − supplier_discount%))
+    // ------------------------------------------------------------------
+    function _recompute_acc_total(cdt, cdn) {
+        var row = frappe.get_doc(cdt, cdn);
+        if (!row) return;
+        var disc  = flt(row.supplier_discount) || 0;
+        var total = flt(flt(row.qty) * flt(row.unit_price_eur) * (1 - disc / 100), 2);
+        frappe.model.set_value(cdt, cdn, 'total_price_eur', total);
+    }
+
+    // ------------------------------------------------------------------
     // Issue 4: sum linked-accessory costs for a given fan SN
     // ------------------------------------------------------------------
     function get_accessory_extra_for_sn(frm, sn) {
@@ -428,7 +443,8 @@
         var total = 0;
         (frm.doc.sa_accessories || []).forEach(function(acc) {
             if ((acc.linked_fan_sn || '') === sn) {
-                total += flt(acc.qty) * flt(acc.unit_price_eur);
+                var disc = flt(acc.supplier_discount) || 0;
+                total += flt(acc.qty) * flt(acc.unit_price_eur) * (1 - disc / 100);
             }
         });
         return total;
@@ -547,7 +563,6 @@
         var customs_rate     = flt(row.customs_rate);
         var margin_percent   = flt(row.margin_percent) || flt(frm.doc.sa_default_margin) || 50;
         var shipping_rate    = flt(frm.doc.sa_shipping_rate) || 12;
-        var eur_rate         = flt(frm.doc.sa_eur_egp_rate) || 1.0;
 
         var cf = (frappe.boot.systemair_config && frappe.boot.systemair_config.combined_cost_factor)
                  ? flt(frappe.boot.systemair_config.combined_cost_factor) : 1.1235;
@@ -574,10 +589,10 @@
         // Steps 11-13
         var vat_mult     = flt(1 + vat_rate / 100, 6);
         var customs_mult = flt(1 + customs_rate / 100, 6);
-        var ddp          = flt(cif * cf * eur_rate * vat_mult * customs_mult, 2);
+        var ddp          = flt(cif * cf * vat_mult * customs_mult, 2);
         // Steps 14-16
         var margin_mult  = flt(1 + margin_percent / 100, 6);
-        var total_eur    = flt(cif * cf * margin_mult * eur_rate * vat_mult * customs_mult, 2);
+        var total_eur    = flt(cif * cf * margin_mult * vat_mult * customs_mult, 2);
         var unit_eur     = flt(total_eur / qty, 2);
 
         frappe.model.set_value(cdt, cdn, 'basic_ex_price',  flt(basic_ex, 2));

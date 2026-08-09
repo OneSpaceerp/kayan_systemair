@@ -40,13 +40,12 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None, accessory_
         9.  cost_factors       = CF1 × CF2  (from Price Config)
         10. customs_rate       — percent per item
         11. vat_multiplier     = 1 + vat_rate/100
-        12. currency_rate      = EUR→EGP from quotation header
-        13. ddp_cost           = cif × cost_factors × currency_rate
+        12. (currency_rate on doc.conversion_rate for ERPNext display only)
+        13. ddp_cost           = cif × cost_factors
                                   × vat_multiplier × (1 + customs_rate/100)
         14. margin             — percent
         15. total_price_eur    = cif × cost_factors × (1 + margin/100)
-                                  × currency_rate × vat_multiplier
-                                  × (1 + customs_rate/100)
+                                  × vat_multiplier × (1 + customs_rate/100)
         16. unit_price_eur     = total_price_eur / qty
 
     Raises:
@@ -149,20 +148,19 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None, accessory_
     vat_multiplier = flt(1.0 + vat_rate / 100.0, 6)  # e.g. 1.14
 
     # ------------------------------------------------------------------ #
-    # Step 12 — Currency Rate (EUR → quote currency); defaults to 1.0      #
+    # Step 12 — Currency Rate                                              #
+    # sa_eur_egp_rate is stored on doc.conversion_rate for ERPNext's      #
+    # standard currency display; it is NOT multiplied into per-item EUR   #
+    # prices so that unit_price_eur remains a true EUR value.             #
     # ------------------------------------------------------------------ #
-    currency_rate = flt(quotation_doc.get("sa_eur_egp_rate") or 1.0, 4)
-    if currency_rate <= 0:
-        currency_rate = 1.0  # safe fallback; no throw
 
     # ------------------------------------------------------------------ #
-    # Step 13 — DDP Cost                                                   #
-    # ddp_cost = cif × cost_factors × currency_rate × vat_multiplier      #
-    #             × (1 + customs_rate/100)                                 #
+    # Step 13 — DDP Cost (EUR)                                             #
+    # ddp_cost = cif × cost_factors × vat_multiplier × customs_multiplier #
     # ------------------------------------------------------------------ #
     customs_multiplier = flt(1.0 + customs_rate / 100.0, 6)
     ddp_cost = flt(
-        cif * cost_factors * currency_rate * vat_multiplier * customs_multiplier,
+        cif * cost_factors * vat_multiplier * customs_multiplier,
         4,
     )
 
@@ -173,12 +171,12 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None, accessory_
     margin_multiplier = flt(1.0 + margin_percent / 100.0, 6)
 
     # ------------------------------------------------------------------ #
-    # Step 15 — Total Price (EUR when currency_rate = 1.0)                 #
-    # total_price = cif × cost_factors × (1 + margin%) × currency_rate    #
+    # Step 15 — Total Price (EUR)                                          #
+    # total_price = cif × cost_factors × (1 + margin%)                    #
     #               × vat_multiplier × (1 + customs%)                     #
     # ------------------------------------------------------------------ #
     total_price_eur = flt(
-        cif * cost_factors * margin_multiplier * currency_rate * vat_multiplier * customs_multiplier,
+        cif * cost_factors * margin_multiplier * vat_multiplier * customs_multiplier,
         4,
     )
 
@@ -214,7 +212,6 @@ def compute_pricing(item_row, quotation_doc, allocated_shipping=None, accessory_
         "cost_factors": cost_factors,
         "customs_rate": customs_rate,
         "vat_multiplier": vat_multiplier,
-        "currency_rate": currency_rate,
         "ddp_cost": item_row.ddp_cost,
         "margin_percent": margin_percent,
         "total_price_eur": item_row.total_price_eur,

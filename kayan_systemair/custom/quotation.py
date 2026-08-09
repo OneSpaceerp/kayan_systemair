@@ -120,15 +120,17 @@ def _apply_defaults_to_items(doc):
 
 def _compute_accessory_totals(doc):
     """
-    Compute total_price_eur for each accessory: qty × unit_price_eur.
-    No margin, customs, or VAT — simple line total.
+    Compute total_price_eur for each accessory:
+        qty × unit_price_eur × (1 − supplier_discount/100)
+    No margin, customs, or VAT — simple discounted line total.
     Linked accessories still show their own line total (for transparency)
     but are NOT added to the quotation grand total (they flow via fan chain).
     """
     for row in (doc.get("sa_accessories") or []):
         qty = flt(row.get("qty")) or 1.0
         unit_price_eur = flt(row.get("unit_price_eur"))
-        row.total_price_eur = flt(unit_price_eur * qty, 2)
+        supplier_discount = flt(row.get("supplier_discount"))
+        row.total_price_eur = flt(unit_price_eur * qty * (1.0 - supplier_discount / 100.0), 2)
 
 
 def _compute_accessory_extras(doc):
@@ -141,7 +143,8 @@ def _compute_accessory_extras(doc):
         sn = (row.get("linked_fan_sn") or "").strip()
         if not sn:
             continue
-        cost = flt(row.get("qty")) * flt(row.get("unit_price_eur"))
+        disc = flt(row.get("supplier_discount"))
+        cost = flt(row.get("qty")) * flt(row.get("unit_price_eur")) * (1.0 - disc / 100.0)
         extras[sn] = extras.get(sn, 0.0) + cost
     return extras
 
