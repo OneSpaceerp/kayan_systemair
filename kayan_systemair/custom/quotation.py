@@ -51,6 +51,10 @@ def before_save(doc, method=None):
     if not doc.get("is_systemair_quotation"):
         return
 
+    # SA quotations use sa_items for their own validation; bypass standard
+    # Quotation/Items mandatory fields that may be set on this site.
+    doc.flags.ignore_mandatory = True
+
     # currency/conversion_rate already set in before_validate; re-apply defensively
     doc.currency = "EUR"
     _ensure_eur_egp_rate(doc)
