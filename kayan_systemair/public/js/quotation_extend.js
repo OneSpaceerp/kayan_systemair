@@ -171,6 +171,24 @@
     });
 
     // ------------------------------------------------------------------
+    // Remove mandatory from standard Quotation / Item fields that may be
+    // marked reqd on this site but are irrelevant for SA quotations.
+    // Must run on every refresh because Frappe resets field meta on reload.
+    // ------------------------------------------------------------------
+    function _clear_sa_mandatory(frm) {
+        var qtn_fields = ['stock_availability', 'incoterm', 'signature'];
+        qtn_fields.forEach(function(f) {
+            if (frm.fields_dict[f]) frm.toggle_reqd(f, false);
+        });
+
+        var item_fields = ['origin', 'brand_name', 'scope_of_supply', 'stock_availability'];
+        item_fields.forEach(function(f) {
+            var df = frappe.meta.get_docfield('Quotation Item', f);
+            if (df) df.reqd = 0;
+        });
+    }
+
+    // ------------------------------------------------------------------
     // Toggle SA sections
     // ------------------------------------------------------------------
     function toggle_sa_sections(frm) {
@@ -201,6 +219,8 @@
             is_sa && flt(frm.doc.sa_eur_egp_rate) !== 1.0);
         frm.toggle_display('sa_effective_margin',    is_sa);
         frm.toggle_display('print_internal',         is_sa);
+
+        if (is_sa) _clear_sa_mandatory(frm);
     }
 
     // ------------------------------------------------------------------
