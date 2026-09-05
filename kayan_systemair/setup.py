@@ -12,6 +12,7 @@ def before_migrate():
 def after_install():
     _resync_erpnext_workspaces()
     _fix_sa_mandatory_fields()
+    _ensure_smoke_rating_defaults()
 
 
 def after_migrate():
@@ -20,6 +21,7 @@ def after_migrate():
     _restore_deleted_workspaces()
     _resync_erpnext_workspaces()
     _fix_sa_mandatory_fields()
+    _ensure_smoke_rating_defaults()
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +114,31 @@ def _resync_erpnext_workspaces():
 # Conditional mandatory: SA quotations must not be blocked by standard
 # Quotation / Quotation Item mandatory custom fields.
 # ---------------------------------------------------------------------------
+
+def _ensure_smoke_rating_defaults():
+    """
+    Create the standard SystemAir Smoke Rating records if they don't exist.
+    These are the values the JS temperature-mapping function produces and that
+    the smoke_rating Link field points to.
+    """
+    defaults = ["Ambient", "300°C/2Hr", "400°C/2Hr", "120°C", "Explosion"]
+    try:
+        created = False
+        for name in defaults:
+            if frappe.db.exists("SystemAir Smoke Rating", name):
+                continue
+            doc = frappe.get_doc({
+                "doctype": "SystemAir Smoke Rating",
+                "name": name,
+            })
+            doc.flags.ignore_permissions = True
+            doc.insert()
+            created = True
+        if created:
+            frappe.db.commit()
+    except Exception:
+        pass
+
 
 def _fix_sa_mandatory_fields():
     """

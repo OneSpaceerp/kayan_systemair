@@ -307,6 +307,15 @@ def _sync_to_standard_items(doc):
         if label:
             linked_acc_names.setdefault(sn, []).append(label)
 
+    # Cache item stock UOMs to avoid one DB hit per row
+    _uom_cache = {}
+    def _item_uom(item_code):
+        if item_code not in _uom_cache:
+            _uom_cache[item_code] = (
+                frappe.db.get_value("Item", item_code, "stock_uom") or "Nos"
+            )
+        return _uom_cache[item_code]
+
     # Fan rows — linked-accessory cost already included in unit_price_eur
     for row in (doc.get("sa_items") or []):
         item_code = row.get("item_code")
@@ -326,7 +335,7 @@ def _sync_to_standard_items(doc):
             "item_name":        display_name,
             "description":      display_name,
             "qty":              qty,
-            "uom":              "Nos",
+            "uom":              _item_uom(item_code),
             "conversion_factor": 1.0,
             "price_list_rate":  rate,
             "rate":             rate,
@@ -351,7 +360,7 @@ def _sync_to_standard_items(doc):
             "item_name":        acc_name,
             "description":      acc_name,
             "qty":              qty,
-            "uom":              "Nos",
+            "uom":              _item_uom(item_code),
             "conversion_factor": 1.0,
             "price_list_rate":  rate,
             "rate":             rate,

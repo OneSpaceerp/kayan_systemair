@@ -1,0 +1,27 @@
+[
+  {
+    "doctype": "SystemAir Smoke Rating",
+    "name": "Ambient",
+    "description": "Ambient temperature — no special heat rating required"
+  },
+  {
+    "doctype": "SystemAir Smoke Rating",
+    "name": "120°C",
+    "description": "Continuous operation up to 120°C"
+  },
+  {
+    "doctype": "SystemAir Smoke Rating",
+    "name": "300°C/2Hr",
+    "description": "Smoke extract rated 300°C for 2 hours"
+  },
+  {
+    "doctype": "SystemAir Smoke Rating",
+    "name": "400°C/2Hr",
+    "description": "Smoke extract rated 400°C for 2 hours"
+  },
+  {
+    "doctype": "SystemAir Smoke Rating",
+    "name": "Explosion",
+    "description": "Explosion-proof / ATEX rated"
+  }
+]

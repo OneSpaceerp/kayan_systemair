@@ -23,6 +23,7 @@ fixtures = [
         "filters": [["doc_type", "in", ["Item", "Quotation"]]],
     },
     "SystemAir Price Config",
+    "SystemAir Smoke Rating",
     "SystemAir Weight Table",
     "Print Format",
 ]
