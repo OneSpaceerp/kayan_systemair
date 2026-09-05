@@ -11,6 +11,7 @@ def before_migrate():
 
 def after_install():
     _resync_erpnext_workspaces()
+    _fix_sa_mandatory_fields()
 
 
 def after_migrate():
@@ -18,6 +19,7 @@ def after_migrate():
     # Restore anything it deleted, then re-sync the ERPNext workspace files.
     _restore_deleted_workspaces()
     _resync_erpnext_workspaces()
+    _fix_sa_mandatory_fields()
 
 
 # ---------------------------------------------------------------------------
@@ -102,5 +104,69 @@ def _resync_erpnext_workspaces():
             except Exception:
                 pass
         frappe.db.commit()
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Conditional mandatory: SA quotations must not be blocked by standard
+# Quotation / Quotation Item mandatory custom fields.
+# ---------------------------------------------------------------------------
+
+def _fix_sa_mandatory_fields():
+    """
+    For every mandatory Custom Field on Quotation (or Quotation Item) that is
+    NOT one of our SA fields, add mandatory_depends_on so the field is only
+    required when is_systemair_quotation is NOT set.
+
+    Frappe evaluates mandatory_depends_on both client-side (JS) and server-side
+    (_validate_mandatory), so this fixes the "Missing Fields" dialog permanently
+    without any JS hacks.
+    """
+    try:
+        changed = False
+
+        # Quotation parent fields
+        qtn_fields = frappe.db.get_all(
+            "Custom Field",
+            filters={"dt": "Quotation", "reqd": 1},
+            fields=["name", "fieldname", "mandatory_depends_on"],
+        )
+        for cf in qtn_fields:
+            fn = cf.fieldname or ""
+            if fn.startswith("sa_") or fn == "is_systemair_quotation":
+                continue
+            target = "eval:!doc.is_systemair_quotation"
+            if cf.mandatory_depends_on == target:
+                continue
+            frappe.db.set_value(
+                "Custom Field", cf.name, "mandatory_depends_on", target,
+                update_modified=False,
+            )
+            changed = True
+
+        # Quotation Item child-table fields
+        item_fields = frappe.db.get_all(
+            "Custom Field",
+            filters={"dt": "Quotation Item", "reqd": 1},
+            fields=["name", "fieldname", "mandatory_depends_on"],
+        )
+        for cf in item_fields:
+            fn = cf.fieldname or ""
+            if fn.startswith("sa_") or fn == "is_systemair_quotation":
+                continue
+            target = "eval:parent_doc && !parent_doc.is_systemair_quotation"
+            if cf.mandatory_depends_on == target:
+                continue
+            frappe.db.set_value(
+                "Custom Field", cf.name, "mandatory_depends_on", target,
+                update_modified=False,
+            )
+            changed = True
+
+        if changed:
+            frappe.db.commit()
+            frappe.clear_cache(doctype="Quotation")
+            frappe.clear_cache(doctype="Quotation Item")
     except Exception:
         pass
