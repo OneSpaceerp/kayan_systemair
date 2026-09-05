@@ -24,6 +24,19 @@
     'use strict';
 
     // ------------------------------------------------------------------
+    // Patch frappe.ui.form.check_mandatory (save.js line 120) to skip the
+    // "Missing Fields" dialog for SystemAir quotations.  This is the actual
+    // function Frappe v16 calls — overriding frm methods has no effect.
+    // ------------------------------------------------------------------
+    var _orig_check_mandatory = frappe.ui.form.check_mandatory;
+    frappe.ui.form.check_mandatory = function(frm) {
+        if (frm && frm.doc && frm.doc.is_systemair_quotation) {
+            return false;   // no mandatory errors → save proceeds
+        }
+        return _orig_check_mandatory ? _orig_check_mandatory.apply(this, arguments) : false;
+    };
+
+    // ------------------------------------------------------------------
     // Quotation form hooks
     // ------------------------------------------------------------------
     frappe.ui.form.on('Quotation', {
