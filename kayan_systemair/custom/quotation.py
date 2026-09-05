@@ -34,9 +34,12 @@ def before_validate(doc, method=None):
     """
     Runs before AccountsController.validate() so conversion_rate is already set
     when ERPNext checks whether to look up a Currency Exchange record.
+    Also sets ignore_mandatory here (earliest possible hook) so that
+    _validate_mandatory() — which may run before the validate event — is skipped.
     """
     if not doc.get("is_systemair_quotation"):
         return
+    doc.flags.ignore_mandatory = True
     doc.currency = "EUR"
     if not flt(doc.get("sa_eur_egp_rate")):
         doc.sa_eur_egp_rate = 1.0
