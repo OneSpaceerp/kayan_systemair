@@ -146,6 +146,8 @@ def _fix_sa_mandatory_fields():
             changed = True
 
         # Quotation Item child-table fields
+        # parent_doc is NOT available in this Frappe version's grid-row eval context.
+        # Use cur_frm (the globally active form) which IS accessible via eval().
         item_fields = frappe.db.get_all(
             "Custom Field",
             filters={"dt": "Quotation Item", "reqd": 1},
@@ -155,7 +157,7 @@ def _fix_sa_mandatory_fields():
             fn = cf.fieldname or ""
             if fn.startswith("sa_") or fn == "is_systemair_quotation":
                 continue
-            target = "eval:parent_doc && !parent_doc.is_systemair_quotation"
+            target = "eval:cur_frm && !cur_frm.doc.is_systemair_quotation"
             if cf.mandatory_depends_on == target:
                 continue
             frappe.db.set_value(
