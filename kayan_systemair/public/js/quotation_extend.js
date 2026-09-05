@@ -40,6 +40,8 @@
 
         validate: function(frm) {
             if (frm.doc.is_systemair_quotation) {
+                // Run right before Frappe's mandatory check fires
+                _clear_sa_mandatory(frm);
                 (frm.doc.items || []).forEach(function(row) {
                     if (!row.item_name) row.item_name = row.item_code || 'Item';
                     if (!row.uom) row.uom = 'Nos';
@@ -171,21 +173,42 @@
     });
 
     // ------------------------------------------------------------------
-    // Remove mandatory from standard Quotation / Item fields that may be
-    // marked reqd on this site but are irrelevant for SA quotations.
-    // Must run on every refresh because Frappe resets field meta on reload.
+    // Remove mandatory from standard Quotation / Quotation Item fields
+    // that are marked reqd on this site but irrelevant for SA quotations.
+    // Uses three methods in parallel to cover all Frappe internal paths:
+    //   1. frm.fields_dict[f].df.reqd — the form-instance field object
+    //   2. frappe.get_meta global meta fields array (shared reference)
+    //   3. frm.fields_dict['items'].grid.meta.fields — grid-local copy
+    // Called on refresh AND in the validate event so it runs right before
+    // Frappe's client-side mandatory check fires during save.
     // ------------------------------------------------------------------
+    var SA_QTN_FIELDS  = ['stock_availability', 'incoterm', 'signature'];
+    var SA_ITEM_FIELDS = ['origin', 'brand_name', 'scope_of_supply', 'stock_availability'];
+
     function _clear_sa_mandatory(frm) {
-        var qtn_fields = ['stock_availability', 'incoterm', 'signature'];
-        qtn_fields.forEach(function(f) {
-            if (frm.fields_dict[f]) frm.toggle_reqd(f, false);
+        // 1 — parent Quotation fields
+        SA_QTN_FIELDS.forEach(function(f) {
+            var fd = frm.fields_dict[f];
+            if (!fd) return;
+            fd.df.reqd = 0;
+            try { frm.toggle_reqd(f, false); } catch(_) {}
         });
 
-        var item_fields = ['origin', 'brand_name', 'scope_of_supply', 'stock_availability'];
-        item_fields.forEach(function(f) {
-            var df = frappe.meta.get_docfield('Quotation Item', f);
-            if (df) df.reqd = 0;
-        });
+        // 2 — global Quotation Item meta (path used by most Frappe versions)
+        var qi_meta = frappe.get_meta && frappe.get_meta('Quotation Item');
+        if (qi_meta && qi_meta.fields) {
+            qi_meta.fields.forEach(function(df) {
+                if (SA_ITEM_FIELDS.indexOf(df.fieldname) !== -1) df.reqd = 0;
+            });
+        }
+
+        // 3 — grid-local meta copy (Frappe sometimes builds a separate object)
+        var items_fd = frm.fields_dict['items'];
+        if (items_fd && items_fd.grid && items_fd.grid.meta && items_fd.grid.meta.fields) {
+            items_fd.grid.meta.fields.forEach(function(df) {
+                if (SA_ITEM_FIELDS.indexOf(df.fieldname) !== -1) df.reqd = 0;
+            });
+        }
     }
 
     // ------------------------------------------------------------------
@@ -195,6 +218,7 @@
         var is_sa = !!(frm.doc.is_systemair_quotation);
 
         frm.toggle_display('items',              !is_sa);
+        frm.set_df_property('items', 'hidden',  is_sa ? 1 : 0);
         frm.toggle_display('taxes_and_charges',  !is_sa);
 
         frm.toggle_display('sa_items',               is_sa);
