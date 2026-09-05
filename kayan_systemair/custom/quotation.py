@@ -20,6 +20,13 @@ from kayan_systemair.kayan_systemair.doctype.systemair_quotation_item.pricing_en
 
 
 class CustomQuotation(Quotation):
+    def _validate_links(self):
+        # SA quotations sync a display-only items table whose item_codes and UOMs
+        # may not exist as ERPNext records. Skip link validation entirely for them.
+        if self.get("is_systemair_quotation"):
+            return
+        super()._validate_links()
+
     @frappe.whitelist()
     def process_item_selection(self, item_idx):
         # ERPNext looks up idx in the standard items table, but for SA quotations
