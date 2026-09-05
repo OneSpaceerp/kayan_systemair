@@ -40,6 +40,7 @@ def before_validate(doc, method=None):
     if not doc.get("is_systemair_quotation"):
         return
     doc.flags.ignore_mandatory = True
+    doc.flags.ignore_links = True
     doc.currency = "EUR"
     if not flt(doc.get("sa_eur_egp_rate")):
         doc.sa_eur_egp_rate = 1.0
