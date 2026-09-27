@@ -12,6 +12,7 @@ def before_migrate():
 def after_install():
     _resync_erpnext_workspaces()
     _fix_sa_mandatory_fields()
+    _relax_standard_mandatory_fields()
     _ensure_smoke_rating_defaults()
 
 
@@ -21,6 +22,7 @@ def after_migrate():
     _restore_deleted_workspaces()
     _resync_erpnext_workspaces()
     _fix_sa_mandatory_fields()
+    _relax_standard_mandatory_fields()
     _ensure_smoke_rating_defaults()
 
 
@@ -197,5 +199,54 @@ def _fix_sa_mandatory_fields():
             frappe.db.commit()
             frappe.clear_cache(doctype="Quotation")
             frappe.clear_cache(doctype="Quotation Item")
+    except Exception:
+        pass
+
+
+def _relax_standard_mandatory_fields():
+    """
+    Standard (non-Custom) reqd fields cannot be reached through Custom Field
+    mandatory_depends_on -- they need a Property Setter instead.
+
+    The standard `items` table is reqd on Quotation, but SA quotations keep
+    their rows in sa_items and only populate `items` server-side in
+    _sync_to_standard_items. It is therefore still empty when the browser runs
+    its mandatory check. That check aborts the save, and because Frappe
+    disables the Save button at the start of the save routine and only
+    re-enables it on success, the button is left permanently dead rather than
+    showing an error.
+    """
+    target_expr = "eval:!doc.is_systemair_quotation"
+    targets = [("Quotation", "items")]
+    try:
+        changed = False
+        for dt, fieldname in targets:
+            existing = frappe.db.get_value(
+                "Property Setter",
+                {
+                    "doc_type": dt,
+                    "field_name": fieldname,
+                    "property": "mandatory_depends_on",
+                },
+                "value",
+            )
+            if existing == target_expr:
+                continue
+            frappe.make_property_setter(
+                {
+                    "doctype": dt,
+                    "doctype_or_field": "DocField",
+                    "fieldname": fieldname,
+                    "property": "mandatory_depends_on",
+                    "value": target_expr,
+                    "property_type": "Data",
+                },
+                is_system_generated=False,
+            )
+            changed = True
+
+        if changed:
+            frappe.db.commit()
+            frappe.clear_cache(doctype="Quotation")
     except Exception:
         pass

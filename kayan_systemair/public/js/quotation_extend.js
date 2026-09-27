@@ -186,39 +186,14 @@
     var SA_ITEM_FIELDS = ['origin', 'brand_name', 'scope_of_supply', 'stock_availability'];
 
     function _clear_sa_mandatory(frm) {
-        // Primary strategy: replace the form instance's own mandatory-checker
-        // with a no-op so Frappe never shows "Missing Fields" for SA quotations.
-        // get_invalid_docs() is the Frappe v16 name; get_invalid_fields() is the
-        // name used in older versions — override both to cover all versions.
-        var _no_errors = function() { return []; };
-        frm.get_invalid_docs   = _no_errors;
-        frm.get_invalid_fields = _no_errors;
-
-        // Belt-and-suspenders: also clear reqd via all known meta paths so the
-        // check also passes if Frappe calls meta directly rather than the method.
-
-        // Parent Quotation fields
+        // Clear reqd on the SA-irrelevant parent fields, for this form only.
+        // The durable fix is mandatory_depends_on, applied by setup.py to the
+        // Custom Fields and to the standard items table.
         SA_QTN_FIELDS.forEach(function(f) {
-            var fd = frm.fields_dict[f];
-            if (!fd) return;
-            fd.df.reqd = 0;
-            try { frm.toggle_reqd(f, false); } catch(_) {}
+            if (!frm.fields_dict[f]) return;
+            frm.fields_dict[f].df.reqd = 0;
+            try { frm.toggle_reqd(f, false); } catch (_) {}
         });
-
-        // Quotation Item child table — clear ALL reqd so we don't need to
-        // know the exact fieldnames added by this site's customisation.
-        var qi_meta = frappe.get_meta && frappe.get_meta('Quotation Item');
-        if (qi_meta && qi_meta.fields) {
-            qi_meta.fields.forEach(function(df) { df.reqd = 0; });
-        }
-        var qi_fields = frappe.meta.get_docfields && frappe.meta.get_docfields('Quotation Item');
-        if (qi_fields && qi_fields.forEach) {
-            qi_fields.forEach(function(df) { df.reqd = 0; });
-        }
-        var items_fd = frm.fields_dict['items'];
-        if (items_fd && items_fd.grid && items_fd.grid.meta && items_fd.grid.meta.fields) {
-            items_fd.grid.meta.fields.forEach(function(df) { df.reqd = 0; });
-        }
     }
 
     // ------------------------------------------------------------------
