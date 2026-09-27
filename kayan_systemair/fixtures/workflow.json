@@ -5,7 +5,7 @@
     "document_type": "Quotation",
     "workflow_name": "SystemAir Quotation Workflow",
     "workflow_state_field": "workflow_state",
-    "is_active": 1,
+    "is_active": 0,
     "override_status": 0,
     "send_email_alert": 0,
     "states": [

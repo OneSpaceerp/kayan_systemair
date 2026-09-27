@@ -15,6 +15,7 @@
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
+ "restrict_to_domain": "",
  "roles": [
   {"role": "SystemAir Sales User"},
   {"role": "SystemAir Sales Manager"},
@@ -25,6 +26,7 @@
   {
    "color": "Blue",
    "format": "{} Open",
+   "icon": "file",
    "label": "Quotation",
    "link_to": "Quotation",
    "stats_filter": "{\"is_systemair_quotation\": 1}",
@@ -32,50 +34,68 @@
   },
   {
    "color": "Green",
+   "icon": "tool",
    "label": "SystemAir Fan Item",
    "link_to": "SystemAir Fan Item",
    "type": "DocType"
   },
   {
    "color": "Orange",
+   "icon": "setting",
    "label": "SystemAir Price Config",
    "link_to": "SystemAir Price Config",
    "type": "DocType"
   },
   {
+   "color": "Purple",
+   "icon": "upload",
    "label": "Price List Import",
    "link_to": "price-list-import",
    "type": "Page"
   },
   {
+   "color": "Cyan",
+   "icon": "list",
    "label": "SystemAir Quotation Summary",
    "link_to": "SystemAir Quotation Summary",
    "type": "Report"
   },
   {
+   "color": "Yellow",
+   "icon": "dashboard",
    "label": "Margin Analysis",
    "link_to": "Margin Analysis",
    "type": "Report"
   },
   {
+   "color": "Pink",
+   "icon": "list",
    "label": "SystemAir Price List Viewer",
    "link_to": "SystemAir Price List Viewer",
    "type": "Report"
   },
   {
+   "color": "Grey",
+   "icon": "file",
    "label": "Fan Weight Reference",
    "link_to": "Fan Weight Reference",
    "type": "Report"
   },
   {
+   "color": "Grey",
+   "icon": "list",
    "label": "SystemAir Import Log",
    "link_to": "SystemAir Import Log",
    "type": "DocType"
   },
   {
+   "color": "Grey",
+   "icon": "tool",
    "label": "SystemAir Weight Table",
    "link_to": "SystemAir Weight Table",
    "type": "DocType"
   }
- ]
+ ],
+ "title": "SystemAir",
+ "type": "Workspace"
 }

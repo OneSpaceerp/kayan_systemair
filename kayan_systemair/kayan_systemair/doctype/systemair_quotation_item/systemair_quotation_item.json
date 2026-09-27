@@ -269,6 +269,7 @@
    "read_only": 1
   }
  ],
+ "editable_grid": 1,
  "istable": 1,
  "links": [],
  "modified": "2026-04-11 00:00:00.000000",
