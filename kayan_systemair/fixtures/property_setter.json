@@ -8,15 +8,5 @@
   "property": "hidden",
   "value": "0",
   "property_type": "Check"
- },
- {
-  "doctype": "Property Setter",
-  "name": "Item-main-search_fields",
-  "doc_type": "Item",
-  "doctype_or_field": "DocType",
-  "field_name": "main",
-  "property": "search_fields",
-  "property_type": "Data",
-  "value": "item_name,sa_article_no"
  }
 ]

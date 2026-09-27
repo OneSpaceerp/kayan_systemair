@@ -20,7 +20,14 @@ fixtures = [
     },
     {
         "dt": "Property Setter",
-        "filters": [["doc_type", "in", ["Item", "Quotation"]]],
+        # search_fields is applied post-install by setup.py and must never be
+        # exported: as a fixture it imports before its fields exist, and Frappe
+        # re-validates search_fields on every Custom Field insert, which aborts
+        # the whole fixture import.
+        "filters": [
+            ["doc_type", "in", ["Item", "Quotation"]],
+            ["property", "!=", "search_fields"],
+        ],
     },
     "SystemAir Price Config",
     "SystemAir Smoke Rating",
@@ -65,6 +72,7 @@ override_doctype_class = {
 # No need to list here — use @frappe.whitelist() decorator in api.py
 
 # After install / migrate — restore standard ERPNext workspaces
+before_install = "kayan_systemair.setup.before_install"
 before_migrate = "kayan_systemair.setup.before_migrate"
 after_install = "kayan_systemair.setup.after_install"
 after_migrate = "kayan_systemair.setup.after_migrate"

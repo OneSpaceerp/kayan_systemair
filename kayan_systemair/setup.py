@@ -5,14 +5,20 @@ import os
 import frappe
 
 
+def before_install():
+    _sanitize_item_search_fields()
+
+
 def before_migrate():
     _backup_all_workspaces()
+    _sanitize_item_search_fields()
 
 
 def after_install():
     _resync_erpnext_workspaces()
     _fix_sa_mandatory_fields()
     _relax_standard_mandatory_fields()
+    _apply_item_search_fields()
     _ensure_smoke_rating_defaults()
 
 
@@ -23,6 +29,7 @@ def after_migrate():
     _resync_erpnext_workspaces()
     _fix_sa_mandatory_fields()
     _relax_standard_mandatory_fields()
+    _apply_item_search_fields()
     _ensure_smoke_rating_defaults()
 
 
@@ -248,5 +255,94 @@ def _relax_standard_mandatory_fields():
         if changed:
             frappe.db.commit()
             frappe.clear_cache(doctype="Quotation")
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Item.search_fields
+#
+# Frappe re-validates the whole Item DocType on EVERY Custom Field insert, and
+# check_search_fields() throws if search_fields names a field that does not
+# exist. Shipping "item_name,sa_article_no" as a Property Setter fixture is
+# therefore self-defeating: on install the property setter is already in the
+# database while sa_article_no is not, so the very first custom field imported
+# aborts the entire fixture import. Strip unknown names before fixtures run,
+# then re-apply the full list once the custom fields exist.
+# ---------------------------------------------------------------------------
+
+ITEM_SEARCH_FIELDS = ["item_name", "sa_article_no"]
+
+
+def _item_has_field(fieldname):
+    if frappe.db.exists("Custom Field", {"dt": "Item", "fieldname": fieldname}):
+        return True
+    return bool(
+        frappe.db.get_value("DocField", {"parent": "Item", "fieldname": fieldname}, "name")
+    )
+
+
+def _set_item_search_fields(value):
+    existing = frappe.db.get_value(
+        "Property Setter",
+        {
+            "doc_type": "Item",
+            "doctype_or_field": "DocType",
+            "property": "search_fields",
+        },
+        "name",
+    )
+    if existing:
+        if frappe.db.get_value("Property Setter", existing, "value") == value:
+            return
+        frappe.db.set_value(
+            "Property Setter", existing, "value", value, update_modified=False
+        )
+    elif value:
+        frappe.get_doc({
+            "doctype": "Property Setter",
+            "doc_type": "Item",
+            "doctype_or_field": "DocType",
+            "field_name": "main",
+            "property": "search_fields",
+            "property_type": "Data",
+            "value": value,
+        }).insert(ignore_permissions=True)
+    else:
+        return
+    frappe.db.commit()
+    frappe.clear_cache(doctype="Item")
+
+
+def _sanitize_item_search_fields():
+    """Drop search_fields entries whose field does not exist yet."""
+    try:
+        value = frappe.db.get_value(
+            "Property Setter",
+            {
+                "doc_type": "Item",
+                "doctype_or_field": "DocType",
+                "property": "search_fields",
+            },
+            "value",
+        )
+        if not value:
+            return
+        kept = [
+            f for f in (part.strip() for part in value.split(",")) if f and _item_has_field(f)
+        ]
+        new_value = ",".join(kept)
+        if new_value != value:
+            _set_item_search_fields(new_value)
+    except Exception:
+        pass
+
+
+def _apply_item_search_fields():
+    """Re-add sa_article_no once the custom fields have been synced."""
+    try:
+        kept = [f for f in ITEM_SEARCH_FIELDS if _item_has_field(f)]
+        if kept:
+            _set_item_search_fields(",".join(kept))
     except Exception:
         pass
