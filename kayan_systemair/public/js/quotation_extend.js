@@ -230,7 +230,10 @@
         frm.toggle_display('sa_effective_margin',    is_sa);
         frm.toggle_display('print_internal',         is_sa);
 
-        if (is_sa) _clear_sa_mandatory(frm);
+        if (is_sa) {
+            _clear_sa_mandatory(frm);
+            setup_grid_uploads(frm);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -242,25 +245,39 @@
     };
 
     function setup_grid_uploads(frm) {
-        Object.keys(SA_UPLOAD_TABLES).forEach(function(fieldname) {
-            _add_grid_upload_button(frm, fieldname);
-        });
+        var attach = function() {
+            Object.keys(SA_UPLOAD_TABLES).forEach(function(fieldname) {
+                _add_grid_upload_button(frm, fieldname);
+            });
+        };
+        attach();
+        // toggle_sa_sections un-hides the SA grids, so on the first pass the
+        // footer often is not in the DOM yet. Retry once it has rendered.
+        setTimeout(attach, 600);
     }
 
     function _add_grid_upload_button(frm, fieldname) {
         var fd = frm.fields_dict[fieldname];
-        if (!fd || !fd.grid || !fd.$wrapper) return;
+        if (!fd || !fd.$wrapper) return;
+
+        var $wrapper = fd.$wrapper;
         // refresh fires repeatedly; never stack a second button on the grid.
-        if (fd.$wrapper.find('.sa-grid-upload').length) return;
-        if (typeof fd.grid.add_custom_button !== 'function') return;
+        if ($wrapper.find('.sa-grid-upload').length) return;
 
-        fd.grid.add_custom_button(__('Upload'), function() {
-            _open_grid_upload(frm, fieldname);
-        }, 'bottom');
+        var $btn = $('<button type="button" class="btn btn-xs btn-secondary sa-grid-upload"></button>')
+            .text(__('Upload'))
+            .css('margin-left', '8px')
+            .on('click', function() { _open_grid_upload(frm, fieldname); });
 
-        fd.$wrapper.find('button').filter(function() {
-            return $(this).text().trim() === __('Upload');
-        }).addClass('sa-grid-upload');
+        // Sit beside "Add row", falling back through the footer to the grid
+        // wrapper so the button always lands somewhere visible.
+        var $add_row = $wrapper.find('.grid-add-row').first();
+        if ($add_row.length) { $add_row.after($btn); return; }
+
+        var $footer = $wrapper.find('.grid-footer').first();
+        if ($footer.length) { $footer.append($btn); return; }
+
+        $wrapper.append($btn);
     }
 
     function _open_grid_upload(frm, fieldname) {
