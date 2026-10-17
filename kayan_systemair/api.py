@@ -1,4 +1,9 @@
+import csv
+import io
+import re
+
 import frappe
+from frappe import _
 from frappe.utils import flt
 
 
@@ -168,4 +173,149 @@ def get_price_config():
         "default_margin": flt(config.default_margin),
         "default_currency_rate": flt(config.default_currency_rate),
         "default_customs_rate": flt(config.default_customs_rate),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Spreadsheet import into the SystemAir child tables
+# ---------------------------------------------------------------------------
+
+SA_IMPORT_TABLES = {
+    "sa_items": "SystemAir Quotation Item",
+    "sa_accessories": "SystemAir Accessory Item",
+}
+
+_LAYOUT_FIELDTYPES = {
+    "Section Break", "Column Break", "Tab Break", "HTML", "Button", "Fold",
+}
+
+MAX_IMPORT_ROWS = 500
+
+
+def _normalize_header(text):
+    """Fold a header to letters+digits so 'Unit Price (EUR)' == 'unit_price_eur'."""
+    return re.sub(r"[^a-z0-9]+", "", str(text or "").strip().lower())
+
+
+def _read_sheet(file_url):
+    """Return the first worksheet of an xlsx/xls/csv File as a list of row lists."""
+    file_doc = frappe.get_doc("File", {"file_url": file_url})
+    # file_url arrives from the browser; never read a file the user cannot.
+    file_doc.check_permission("read")
+
+    path = file_doc.get_full_path()
+    fname = (file_doc.file_name or file_url or "").lower()
+
+    if fname.endswith(".csv"):
+        with io.open(path, "r", encoding="utf-8-sig", newline="") as fh:
+            return [list(r) for r in csv.reader(fh)]
+
+    import openpyxl
+
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    try:
+        ws = wb[wb.sheetnames[0]]
+        return [list(r) for r in ws.iter_rows(values_only=True)]
+    finally:
+        wb.close()
+
+
+def _coerce(df, value):
+    if value is None:
+        return None
+
+    if df.fieldtype in ("Float", "Currency", "Percent", "Int"):
+        if isinstance(value, str):
+            value = value.replace(",", "").replace("%", "").strip()
+            if not value:
+                return None
+        try:
+            return int(flt(value)) if df.fieldtype == "Int" else flt(value)
+        except Exception:
+            return None
+
+    if df.fieldtype == "Check":
+        return 1 if str(value).strip().lower() in ("1", "y", "yes", "true") else 0
+
+    return str(value).strip() or None
+
+
+@frappe.whitelist()
+def import_sa_rows(file_url, table):
+    """
+    Parse an uploaded Excel/CSV sheet into rows for one of the SystemAir child
+    tables. Columns are matched on each field's label or fieldname ignoring
+    case, spacing and punctuation, so a sheet carrying the grid headers imports
+    as-is.
+
+    Rows are returned rather than written: the quotation is usually still
+    unsaved when the user imports, so the client appends them and reruns the
+    pricing engine.
+    """
+    if not frappe.has_permission("Quotation", "write"):
+        frappe.throw(_("Not permitted to import Quotation rows."), frappe.PermissionError)
+
+    child_doctype = SA_IMPORT_TABLES.get(table)
+    if not child_doctype:
+        frappe.throw(_("Unknown table {0}.").format(table))
+
+    rows = _read_sheet(file_url)
+    if not rows:
+        frappe.throw(_("The uploaded file is empty."))
+
+    meta = frappe.get_meta(child_doctype)
+    by_header = {}
+    for df in meta.fields:
+        if df.fieldtype in _LAYOUT_FIELDTYPES:
+            continue
+        for key in (df.label, df.fieldname):
+            folded = _normalize_header(key)
+            if folded:
+                by_header.setdefault(folded, df)
+
+    # Header row = whichever of the first 5 rows matches the most columns.
+    header_idx, header_map, best = 0, {}, 0
+    for idx, raw in enumerate(rows[:5]):
+        mapping = {}
+        for col, cell in enumerate(raw):
+            df = by_header.get(_normalize_header(cell))
+            if df is not None:
+                mapping[col] = df
+        if len(mapping) > best:
+            header_idx, header_map, best = idx, mapping, len(mapping)
+
+    if not header_map:
+        found = ", ".join(str(c).strip() for c in rows[0] if c is not None)
+        frappe.throw(
+            _("No column in the file matches a {0} column. Headers found: {1}").format(
+                child_doctype, found or _("(none)")
+            )
+        )
+
+    unmatched = [
+        str(cell).strip()
+        for col, cell in enumerate(rows[header_idx])
+        if col not in header_map and cell is not None and str(cell).strip()
+    ]
+
+    out = []
+    for raw in rows[header_idx + 1:]:
+        row = {}
+        for col, df in header_map.items():
+            if col >= len(raw):
+                continue
+            val = _coerce(df, raw[col])
+            if val is not None and val != "":
+                row[df.fieldname] = val
+        if row:
+            out.append(row)
+        if len(out) >= MAX_IMPORT_ROWS:
+            break
+
+    return {
+        "rows": out,
+        "count": len(out),
+        "matched": sorted({df.label or df.fieldname for df in header_map.values()}),
+        "unmatched": unmatched,
+        "truncated": len(out) >= MAX_IMPORT_ROWS,
     }

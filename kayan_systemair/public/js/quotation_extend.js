@@ -32,6 +32,7 @@
             toggle_sa_sections(frm);
             if (frm.doc.is_systemair_quotation) {
                 setup_sa_toolbar(frm);
+                setup_grid_uploads(frm);
                 apply_margin_colors(frm);
                 recalculate_all_rows(frm);
                 update_quotation_totals(frm);
@@ -230,6 +231,111 @@
         frm.toggle_display('print_internal',         is_sa);
 
         if (is_sa) _clear_sa_mandatory(frm);
+    }
+
+    // ------------------------------------------------------------------
+    // Excel / CSV upload into the SA child tables
+    // ------------------------------------------------------------------
+    var SA_UPLOAD_TABLES = {
+        sa_items:       'SystemAir Items',
+        sa_accessories: 'SystemAir Accessories'
+    };
+
+    function setup_grid_uploads(frm) {
+        Object.keys(SA_UPLOAD_TABLES).forEach(function(fieldname) {
+            _add_grid_upload_button(frm, fieldname);
+        });
+    }
+
+    function _add_grid_upload_button(frm, fieldname) {
+        var fd = frm.fields_dict[fieldname];
+        if (!fd || !fd.grid || !fd.$wrapper) return;
+        // refresh fires repeatedly; never stack a second button on the grid.
+        if (fd.$wrapper.find('.sa-grid-upload').length) return;
+        if (typeof fd.grid.add_custom_button !== 'function') return;
+
+        fd.grid.add_custom_button(__('Upload'), function() {
+            _open_grid_upload(frm, fieldname);
+        }, 'bottom');
+
+        fd.$wrapper.find('button').filter(function() {
+            return $(this).text().trim() === __('Upload');
+        }).addClass('sa-grid-upload');
+    }
+
+    function _open_grid_upload(frm, fieldname) {
+        new frappe.ui.FileUploader({
+            allow_multiple: false,
+            restrictions: { allowed_file_types: ['.xlsx', '.xls', '.csv'] },
+            on_success: function(file_doc) {
+                frappe.call({
+                    method: 'kayan_systemair.api.import_sa_rows',
+                    args: { file_url: file_doc.file_url, table: fieldname },
+                    freeze: true,
+                    freeze_message: __('Importing rows...'),
+                    callback: function(r) {
+                        if (r && r.message) _apply_imported_rows(frm, fieldname, r.message);
+                    }
+                });
+            }
+        });
+    }
+
+    function _apply_imported_rows(frm, fieldname, res) {
+        var rows = res.rows || [];
+        if (!rows.length) {
+            frappe.msgprint({
+                title: __('Nothing Imported'),
+                indicator: 'orange',
+                message: __('No data rows were found below the header row.')
+            });
+            return;
+        }
+
+        rows.forEach(function(data) {
+            var row = frm.add_child(fieldname);
+            Object.keys(data).forEach(function(key) {
+                row[key] = data[key];
+            });
+            if (fieldname === 'sa_items') {
+                // Header defaults fill only what the sheet left out, so an
+                // explicit discount/margin/customs column always wins.
+                if (data.supplier_discount === undefined && flt(frm.doc.sa_default_discount) > 0)
+                    row.supplier_discount = flt(frm.doc.sa_default_discount);
+                if (data.additional_discount === undefined && flt(frm.doc.sa_additional_discount) > 0)
+                    row.additional_discount = flt(frm.doc.sa_additional_discount);
+                if (data.margin_percent === undefined && flt(frm.doc.sa_default_margin) > 0)
+                    row.margin_percent = flt(frm.doc.sa_default_margin);
+                if (data.customs_rate === undefined && flt(frm.doc.sa_default_customs) > 0)
+                    row.customs_rate = flt(frm.doc.sa_default_customs);
+            }
+        });
+
+        frm.refresh_field(fieldname);
+
+        if (fieldname === 'sa_accessories') {
+            (frm.doc.sa_accessories || []).forEach(function(row) {
+                _recompute_acc_total(row.doctype, row.name);
+            });
+            frm.refresh_field('sa_accessories');
+        }
+
+        recalculate_all_rows(frm);
+        update_quotation_totals(frm);
+
+        var msg = __('Imported {0} row(s) into {1}.',
+            [rows.length, __(SA_UPLOAD_TABLES[fieldname] || fieldname)]);
+        if (res.truncated) {
+            msg += '<br>' + __('The file was cut off at the import row limit.');
+        }
+        if ((res.unmatched || []).length) {
+            msg += '<br><br>' + __('Ignored columns: {0}', [res.unmatched.join(', ')]);
+        }
+        frappe.msgprint({
+            title: __('Import Complete'),
+            indicator: 'green',
+            message: msg
+        });
     }
 
     // ------------------------------------------------------------------
