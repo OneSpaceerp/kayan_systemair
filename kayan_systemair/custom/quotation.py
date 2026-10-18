@@ -28,13 +28,20 @@ class CustomQuotation(Quotation):
         super()._validate_links()
 
     @frappe.whitelist()
-    def process_item_selection(self, item_idx):
+    def process_item_selection(self, item_idx, reset_item_details=None, **kwargs):
         # ERPNext looks up idx in the standard items table, but for SA quotations
         # that table only holds synced rows and may not match sa_items indices.
         # Our client-side fetch_item_prices handles all item detail lookups.
+        #
+        # run_doc_method forwards every client arg as a keyword, so this
+        # signature has to stay at least as wide as ERPNext's. **kwargs absorbs
+        # arguments a later version adds (v16 already sends parentfield) rather
+        # than raising TypeError and breaking item selection on every quotation.
         if self.get("is_systemair_quotation"):
             return {}
-        return super().process_item_selection(item_idx)
+        if reset_item_details is not None:
+            kwargs["reset_item_details"] = reset_item_details
+        return super().process_item_selection(item_idx, **kwargs)
 
 
 def before_validate(doc, method=None):
