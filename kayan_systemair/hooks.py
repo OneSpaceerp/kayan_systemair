@@ -22,7 +22,6 @@ add_to_apps_screen = [
         "title": "Kayan SystemAir",
         "logo": "/assets/kayan_systemair/images/app_icon.png",
         "route": "/desk/systemair",
-        "has_permission": "kayan_systemair.api.has_app_permission",
     }
 ]
 
