@@ -1,10 +1,30 @@
 app_name = "kayan_systemair"
 app_title = "Kayan SystemAir"
-app_publisher = "Nest Software Development"
+app_publisher = "nsdLabs - Nest Software Development"
 app_description = "SystemAir axial fan quotation and pricing application for Kayan for Import"
 app_email = "info@nsd-eg.com"
 app_license = "MIT"
 app_version = "1.0.0"
+app_logo_url = "/assets/kayan_systemair/images/app_icon.png"
+
+# Frappe v16 desktop screen.
+#
+# v16 replaced the old navigation: the desk moved from /app to /desk, the /apps
+# page is deprecated, and a desktop screen now renders a tile per app plus icons
+# for every public workspace. That autogeneration only picks up a custom app if
+# this hook is present, so without it the app has no tile at all.
+#
+# `route` is passed through literally -- it is neither resolved nor permission
+# checked -- so it must track the workspace's actual desk route.
+add_to_apps_screen = [
+    {
+        "name": "kayan_systemair",
+        "title": "Kayan SystemAir",
+        "logo": "/assets/kayan_systemair/images/app_icon.png",
+        "route": "/desk/systemair",
+        "has_permission": "kayan_systemair.api.has_app_permission",
+    }
+]
 
 # Fixtures exported by bench export-fixtures
 fixtures = [

@@ -319,3 +319,25 @@ def import_sa_rows(file_url, table):
         "unmatched": unmatched,
         "truncated": len(out) >= MAX_IMPORT_ROWS,
     }
+
+
+# ---------------------------------------------------------------------------
+# Frappe v16 apps screen
+# ---------------------------------------------------------------------------
+
+SA_APP_ROLES = (
+    "System Manager",
+    "SystemAir Admin",
+    "SystemAir Sales Manager",
+    "SystemAir Sales User",
+)
+
+
+def has_app_permission():
+    """
+    Gate the v16 desktop tile to users who actually work with SystemAir.
+
+    Referenced by the add_to_apps_screen hook and resolved server-side during
+    boot, so it is deliberately not whitelisted.
+    """
+    return bool(set(frappe.get_roles()) & set(SA_APP_ROLES))

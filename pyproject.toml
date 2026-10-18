@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "kayan_systemair"
 authors = [
-    { name = "Nest Software Development", email = "info@nsd-eg.com" }
+    { name = "nsdLabs - Nest Software Development", email = "info@nsd-eg.com" }
 ]
 description = "SystemAir axial fan quotation and pricing application for Kayan for Import"
 readme = "README.md"

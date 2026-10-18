@@ -17,16 +17,22 @@
  "public": 1,
  "restrict_to_domain": "",
  "roles": [
-  {"role": "SystemAir Sales User"},
-  {"role": "SystemAir Sales Manager"},
-  {"role": "SystemAir Admin"}
+  {
+   "role": "SystemAir Sales User"
+  },
+  {
+   "role": "SystemAir Sales Manager"
+  },
+  {
+   "role": "SystemAir Admin"
+  }
  ],
  "sequence_id": 100.0,
  "shortcuts": [
   {
    "color": "Blue",
    "format": "{} Open",
-   "icon": "file",
+   "icon": "selling",
    "label": "Quotation",
    "link_to": "Quotation",
    "stats_filter": "{\"is_systemair_quotation\": 1}",
@@ -34,7 +40,7 @@
   },
   {
    "color": "Green",
-   "icon": "tool",
+   "icon": "stock",
    "label": "SystemAir Fan Item",
    "link_to": "SystemAir Fan Item",
    "type": "DocType"
@@ -48,7 +54,7 @@
   },
   {
    "color": "Purple",
-   "icon": "upload",
+   "icon": "stock",
    "label": "Price List Import",
    "link_to": "price-list-import",
    "type": "Page"
@@ -97,5 +103,6 @@
   }
  ],
  "title": "SystemAir",
- "type": "Workspace"
+ "type": "Workspace",
+ "standard": 1
 }
