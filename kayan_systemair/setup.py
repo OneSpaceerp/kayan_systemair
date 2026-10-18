@@ -20,6 +20,7 @@ def after_install():
     _relax_standard_mandatory_fields()
     _apply_item_search_fields()
     _ensure_smoke_rating_defaults()
+    _apply_sidebar_icons()
 
 
 def after_migrate():
@@ -31,6 +32,7 @@ def after_migrate():
     _relax_standard_mandatory_fields()
     _apply_item_search_fields()
     _ensure_smoke_rating_defaults()
+    _apply_sidebar_icons()
 
 
 # ---------------------------------------------------------------------------
@@ -344,5 +346,62 @@ def _apply_item_search_fields():
         kept = [f for f in ITEM_SEARCH_FIELDS if _item_has_field(f)]
         if kept:
             _set_item_search_fields(",".join(kept))
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Workspace sidebar icons
+#
+# v16 autogenerates the module's sidebar from the workspace, but every row
+# lands without an icon, so the sidebar renders one repeated generic glyph
+# instead of ERPNext's per-item icons.
+#
+# The sidebar doctype is read from the site rather than assumed, and only
+# fields that actually exist are written, so this stays inert instead of
+# breaking migrate if the schema differs on a given build.
+# ---------------------------------------------------------------------------
+
+SIDEBAR_DOCTYPES = ("Workspace Sidebar", "Sidebar")
+
+SIDEBAR_ICONS = {
+    "Home": "home",
+    "Quotation": "selling",
+    "SystemAir Fan Item": "stock",
+    "SystemAir Price Config": "setting",
+    "Price List Import": "integration",
+    "SystemAir Quotation Summary": "list",
+    "Margin Analysis": "dashboard",
+    "SystemAir Price List Viewer": "list",
+    "Fan Weight Reference": "file",
+    "SystemAir Import Log": "integration",
+    "SystemAir Weight Table": "tool",
+}
+
+
+def _apply_sidebar_icons():
+    try:
+        doctype = next(
+            (d for d in SIDEBAR_DOCTYPES if frappe.db.exists("DocType", d)), None
+        )
+        if not doctype or not frappe.db.exists(doctype, "SystemAir"):
+            return
+
+        doc = frappe.get_doc(doctype, "SystemAir")
+        rows = doc.get("items") or []
+        if not rows or not rows[0].meta.has_field("icon"):
+            return
+
+        changed = False
+        for row in rows:
+            icon = SIDEBAR_ICONS.get((row.get("label") or "").strip())
+            if icon and row.get("icon") != icon:
+                row.icon = icon
+                changed = True
+
+        if changed:
+            doc.flags.ignore_permissions = True
+            doc.save()
+            frappe.db.commit()
     except Exception:
         pass
