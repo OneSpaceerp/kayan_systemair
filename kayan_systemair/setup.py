@@ -432,15 +432,20 @@ def _apply_sidebar_icons():
 # rearranged is never overwritten.
 # ---------------------------------------------------------------------------
 
-DOCK_ROWS = [
-    {
-        "title": "SystemAir",
-        "icon": "manufacturing",
-        "sidebar": "Kayan Systemair",
-        "link_type": "Workspace",
-        "link_to": "SystemAir",
-    },
-]
+def _dock_target():
+    """
+    Point the rail at the module's sidebar shell the way other apps do
+    (trip ships link_type "Sidebar", link_to "Trip"). Fall back to the
+    workspace -- whose name is known to exist -- if no sidebar record is found,
+    which the hooks docs allow: the shell is then derived from its module.
+    """
+    for dt in SIDEBAR_DOCTYPES:
+        if not frappe.db.exists("DocType", dt):
+            continue
+        for candidate in ("SystemAir", "Kayan Systemair"):
+            if frappe.db.exists(dt, candidate):
+                return {"link_type": "Sidebar", "link_to": candidate}
+    return {"link_type": "Workspace", "link_to": "SystemAir"}
 
 
 def _ensure_dock():
@@ -455,40 +460,42 @@ def _ensure_dock():
             return
         row_fields = {df.fieldname for df in frappe.get_meta(table_df.options).fields}
 
-        # Find an existing rail however this build keys it, and leave it alone.
-        existing = None
-        if "app" in parent_fields:
-            existing = frappe.db.get_value("Dock", {"app": "kayan_systemair"}, "name")
+        row = dict(_dock_target())
+        row.update({"icon": "manufacturing", "title": "SystemAir", "hidden": 0})
+
+        existing = frappe.db.get_value("Dock", {"app": "kayan_systemair"}, "name")
         if not existing and frappe.db.exists("Dock", "kayan_systemair"):
             existing = "kayan_systemair"
+
         if existing:
-            return
+            doc = frappe.get_doc("Dock", existing)
+            # A rail the site has arranged is never touched; only repair one
+            # left empty by an earlier attempt.
+            if doc.get(table_df.fieldname):
+                return
+        else:
+            doc = frappe.new_doc("Dock")
+            if "app" in parent_fields:
+                doc.app = "kayan_systemair"
+            if "standard" in parent_fields:
+                # App rails are standard; the site's per-user rails are
+                # separate hash-named records carrying `user`.
+                doc.standard = 1
+            if not doc.get("name"):
+                # Every app rail is named for its app: erpnext, hrms, trip ...
+                doc.name = "kayan_systemair"
 
-        doc = frappe.new_doc("Dock")
-        if "app" in parent_fields:
-            doc.app = "kayan_systemair"
-        if "standard" in parent_fields:
-            # App-shipped rails are standard; the per-user rails on a site are
-            # separate hash-named records carrying `user`.
-            doc.standard = 1
-        if not doc.get("name"):
-            # Every app dock on the site is named for its app: erpnext, hrms,
-            # trip, nest_chat ...
-            doc.name = "kayan_systemair"
-
-        for row in DOCK_ROWS:
-            child = doc.append(table_df.fieldname, {})
-            for key, value in row.items():
-                if key in row_fields:
-                    child.set(key, value)
+        child = doc.append(table_df.fieldname, {})
+        for key, value in row.items():
+            if key in row_fields:
+                child.set(key, value)
 
         doc.flags.ignore_permissions = True
-        doc.insert()
+        doc.save() if existing else doc.insert()
         frappe.db.commit()
     except Exception:
-        # Unlike the other setup steps this one is not yet field-verified
-        # against every build, so surface failures in the Error Log rather
-        # than losing them to a silent pass.
+        # Surface failures in the Error Log rather than losing them to a
+        # silent pass.
         frappe.log_error(
             frappe.get_traceback(), "kayan_systemair: could not create Dock"
         )
