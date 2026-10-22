@@ -467,9 +467,13 @@ def _ensure_dock():
         doc = frappe.new_doc("Dock")
         if "app" in parent_fields:
             doc.app = "kayan_systemair"
-        if "title" in parent_fields:
-            doc.title = "Kayan SystemAir"
+        if "standard" in parent_fields:
+            # App-shipped rails are standard; the per-user rails on a site are
+            # separate hash-named records carrying `user`.
+            doc.standard = 1
         if not doc.get("name"):
+            # Every app dock on the site is named for its app: erpnext, hrms,
+            # trip, nest_chat ...
             doc.name = "kayan_systemair"
 
         for row in DOCK_ROWS:
@@ -482,4 +486,9 @@ def _ensure_dock():
         doc.insert()
         frappe.db.commit()
     except Exception:
-        pass
+        # Unlike the other setup steps this one is not yet field-verified
+        # against every build, so surface failures in the Error Log rather
+        # than losing them to a silent pass.
+        frappe.log_error(
+            frappe.get_traceback(), "kayan_systemair: could not create Dock"
+        )
