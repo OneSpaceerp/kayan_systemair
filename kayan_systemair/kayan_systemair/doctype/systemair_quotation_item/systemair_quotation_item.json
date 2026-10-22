@@ -123,10 +123,9 @@
   },
   {
    "fieldname": "esp_unit",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Pressure Unit",
-   "options": "Pa\nIN.WG",
    "default": "Pa"
   },
   {
