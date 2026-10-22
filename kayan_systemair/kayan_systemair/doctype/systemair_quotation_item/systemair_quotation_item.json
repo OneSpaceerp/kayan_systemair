@@ -103,16 +103,14 @@
   },
   {
    "fieldname": "airflow_ls",
-   "fieldtype": "Float",
-   "label": "Airflow",
-   "precision": "2"
+   "fieldtype": "Data",
+   "label": "Airflow"
   },
   {
    "fieldname": "airflow_unit",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Flow Unit",
-   "options": "l/s\nCFM\nm³/h",
    "default": "l/s"
   },
   {
