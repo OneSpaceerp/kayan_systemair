@@ -117,9 +117,8 @@
   },
   {
    "fieldname": "esp_pa",
-   "fieldtype": "Float",
-   "label": "ESP",
-   "precision": "2"
+   "fieldtype": "Data",
+   "label": "ESP"
   },
   {
    "fieldname": "esp_unit",
