@@ -34,8 +34,20 @@
                 setup_sa_toolbar(frm);
                 setup_grid_uploads(frm);
                 apply_margin_colors(frm);
-                recalculate_all_rows(frm);
-                update_quotation_totals(frm);
+                // Only recalculate while the document is still unsaved.
+                //
+                // refresh also fires straight after a successful save, and
+                // these two write through frappe.model.set_value, which marks
+                // the form dirty again. The document saved fine but the form
+                // went back to "Not Saved", so the primary action stayed
+                // "Save" and Submit never appeared.
+                //
+                // A saved document already carries these numbers: the server
+                // computes them in before_save and stores them.
+                if (frm.is_new()) {
+                    recalculate_all_rows(frm);
+                    update_quotation_totals(frm);
+                }
             }
         },
 
