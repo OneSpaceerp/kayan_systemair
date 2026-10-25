@@ -322,19 +322,29 @@ def _sync_to_standard_items(doc):
         if label:
             linked_acc_names.setdefault(sn, []).append(label)
 
-    # Cache item stock UOMs to avoid one DB hit per row
+    # Cache item stock UOMs to avoid one DB hit per row. Returns None when no
+    # such Item exists, which is also how rows are screened below.
     _uom_cache = {}
     def _item_uom(item_code):
         if item_code not in _uom_cache:
-            _uom_cache[item_code] = (
-                frappe.db.get_value("Item", item_code, "stock_uom") or "Nos"
-            )
+            _uom_cache[item_code] = frappe.db.get_value("Item", item_code, "stock_uom")
         return _uom_cache[item_code]
+
+    skipped = []
 
     # Fan rows — linked-accessory cost already included in unit_price_eur
     for row in (doc.get("sa_items") or []):
         item_code = row.get("item_code")
         if not item_code:
+            continue
+
+        uom = _item_uom(item_code)
+        if not uom:
+            # No Item by this name. ERPNext resolves every row of the standard
+            # items table during validate, so leaving it in makes the save fail
+            # with DoesNotExistError -- a 404 that aborts the whole quotation.
+            # The row stays in sa_items; only the display table skips it.
+            skipped.append(item_code)
             continue
 
         sn = (row.get("sa_sn") or "").strip()
@@ -350,7 +360,7 @@ def _sync_to_standard_items(doc):
             "item_name":        display_name,
             "description":      display_name,
             "qty":              qty,
-            "uom":              _item_uom(item_code),
+            "uom":              uom,
             "conversion_factor": 1.0,
             "price_list_rate":  rate,
             "rate":             rate,
@@ -366,6 +376,11 @@ def _sync_to_standard_items(doc):
         if (acc.get("linked_fan_sn") or "").strip():
             continue
 
+        acc_uom = _item_uom(item_code)
+        if not acc_uom:
+            skipped.append(item_code)
+            continue
+
         acc_name = (acc.get("accessory_name") or item_code).strip()
         qty  = flt(acc.get("qty")) or 1
         rate = flt(acc.get("unit_price_eur"))
@@ -375,10 +390,25 @@ def _sync_to_standard_items(doc):
             "item_name":        acc_name,
             "description":      acc_name,
             "qty":              qty,
-            "uom":              _item_uom(item_code),
+            "uom":              acc_uom,
             "conversion_factor": 1.0,
             "price_list_rate":  rate,
             "rate":             rate,
             "amount":           flt(rate * qty, 2),
             "ordered_qty":      0,
         })
+
+    if skipped:
+        unique = sorted(set(skipped))
+        frappe.msgprint(
+            _("{0} row(s) are not in the standard Items table because no Item "
+              "record exists for them: {1}{2}. Run Price List Import to create "
+              "them.").format(
+                len(skipped),
+                ", ".join(unique[:10]),
+                " ..." if len(unique) > 10 else "",
+            ),
+            indicator="orange",
+            alert=True,
+        )
+
