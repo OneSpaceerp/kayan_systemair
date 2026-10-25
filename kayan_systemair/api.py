@@ -189,7 +189,31 @@ _LAYOUT_FIELDTYPES = {
     "Section Break", "Column Break", "Tab Break", "HTML", "Button", "Fold",
 }
 
-MAX_IMPORT_ROWS = 500
+MAX_IMPORT_ROWS = 2000
+
+# Consecutive rows without a key value that end the import.
+BLANK_ROW_LIMIT = 15
+
+# Headers used by the Kayan COST workbook that do not match a field label or
+# fieldname. Keys are folded the same way headers are (letters + digits).
+SA_HEADER_ALIASES = {
+    # COST carries both "SN" (F-01, the tag) and "Fan Ref. (SN)" (FAF-...).
+    # The latter matches sa_sn by label; the tag belongs in location, whose
+    # own "Location" column in that workbook is blank.
+    "sn": "location",
+    "flowls": "airflow_ls",
+    "esppa": "esp_pa",
+}
+
+# Columns deliberately left out rather than reported as unmatched.
+SA_IGNORED_HEADERS = {
+    # Ambiguous list price, blank for every AXC row; list prices are fetched
+    # from the Item master instead.
+    "globleprice",
+    # Stored as an Excel fraction (0.58 for 58%), which would import as 0.58%.
+    # The quotation's own default discount fills each row instead.
+    "discount",
+}
 
 
 def _normalize_header(text):
@@ -266,7 +290,10 @@ def import_sa_rows(file_url, table):
     meta = frappe.get_meta(child_doctype)
     by_header = {}
     for df in meta.fields:
-        if df.fieldtype in _LAYOUT_FIELDTYPES:
+        # Read-only fields (cif, ddp_cost, unit_price_eur ...) are produced by
+        # the pricing engine. A sheet column that happens to share their name
+        # must not seed them.
+        if df.fieldtype in _LAYOUT_FIELDTYPES or df.read_only:
             continue
         for key in (df.label, df.fieldname):
             folded = _normalize_header(key)
@@ -274,11 +301,20 @@ def import_sa_rows(file_url, table):
                 by_header.setdefault(folded, df)
 
     # Header row = whichever of the first 5 rows matches the most columns.
+    def _resolve(cell):
+        key = _normalize_header(cell)
+        if not key or key in SA_IGNORED_HEADERS:
+            return None
+        df = by_header.get(key)
+        if df is None and key in SA_HEADER_ALIASES:
+            df = meta.get_field(SA_HEADER_ALIASES[key])
+        return df
+
     header_idx, header_map, best = 0, {}, 0
     for idx, raw in enumerate(rows[:5]):
         mapping = {}
         for col, cell in enumerate(raw):
-            df = by_header.get(_normalize_header(cell))
+            df = _resolve(cell)
             if df is not None:
                 mapping[col] = df
         if len(mapping) > best:
@@ -295,22 +331,46 @@ def import_sa_rows(file_url, table):
     unmatched = [
         str(cell).strip()
         for col, cell in enumerate(rows[header_idx])
-        if col not in header_map and cell is not None and str(cell).strip()
+        if col not in header_map
+        and cell is not None
+        and str(cell).strip()
+        and _normalize_header(cell) not in SA_IGNORED_HEADERS
     ]
 
+    # A real data row carries the key column. Sheets like the COST workbook
+    # continue past the fan list with dropdown lookup values, which would
+    # otherwise arrive as hundreds of junk rows, so stop once the key column
+    # has been blank for a while.
+    key_col = next(
+        (c for c, df in header_map.items() if df.fieldname == "item_code"), None
+    )
+
     out = []
+    blank_streak = 0
     for raw in rows[header_idx + 1:]:
         row = {}
-        for col, df in header_map.items():
-            if col >= len(raw):
-                continue
-            val = _coerce(df, raw[col])
-            if val is not None and val != "":
-                row[df.fieldname] = val
+        has_key = True
+        if key_col is not None:
+            cell = raw[key_col] if key_col < len(raw) else None
+            has_key = cell is not None and str(cell).strip() != ""
+
+        if has_key:
+            for col, df in header_map.items():
+                if col >= len(raw):
+                    continue
+                val = _coerce(df, raw[col])
+                if val is not None and val != "":
+                    row[df.fieldname] = val
+
         if row:
+            blank_streak = 0
             out.append(row)
-        if len(out) >= MAX_IMPORT_ROWS:
-            break
+            if len(out) >= MAX_IMPORT_ROWS:
+                break
+        else:
+            blank_streak += 1
+            if blank_streak >= BLANK_ROW_LIMIT:
+                break
 
     return {
         "rows": out,
