@@ -335,6 +335,7 @@ def _fan_item_creator():
 
     group = _ensure_sa_item_group()
     cache = {}
+    errors = []
 
     def create(code, article, row):
         key = (code, article)
@@ -356,16 +357,18 @@ def _fan_item_creator():
                 temperature_rate=row.get("smoke_rating") or "",
                 display_name=(code or name),
             )
-        except Exception:
+        except Exception as exc:
             frappe.log_error(
                 frappe.get_traceback(),
                 "kayan_systemair: could not create Item for %s" % (code or article),
             )
+            errors.append("%s: %s" % (name, exc))
             created = None
 
         cache[key] = created
         return created
 
+    create.errors = errors
     return create
 
 
@@ -519,6 +522,7 @@ def import_sa_rows(file_url, table, create_missing_items=1):
         "unresolved_count": len({u for u in unresolved if u}),
         "created": sorted(set(created))[:25],
         "created_count": len(set(created)),
+        "create_errors": (getattr(create_item, "errors", []) or [])[:5],
     }
 
 
@@ -576,6 +580,8 @@ def repair_sa_item_codes(quotation, create_missing_items=1):
         "changed": changed,
         "created": sorted(set(created))[:25],
         "created_count": len(set(created)),
+        "create_errors": (getattr(create_item, "errors", []) or [])[:5] if create_item else [],
+        "can_create": can_create,
         "unresolved": distinct[:25],
         "unresolved_count": len(distinct),
     }

@@ -691,16 +691,21 @@ def _default_stock_uom():
         return cached
 
     uom = None
-    rows = frappe.db.get_all(
-        "Item",
-        fields=["stock_uom", "count(name) as uses"],
-        filters={"stock_uom": ["!=", ""]},
-        group_by="stock_uom",
-        order_by="uses desc",
-        limit=1,
-    )
-    if rows:
-        uom = rows[0].get("stock_uom")
+    try:
+        # Any existing Item's UOM is by definition a real one. Deliberately a
+        # plain select: grouping with an aggregate alias and ordering by it is
+        # the kind of query the builder can reject, and this runs inside Item
+        # creation where a failure is invisible.
+        rows = frappe.db.get_all(
+            "Item",
+            fields=["stock_uom"],
+            filters={"stock_uom": ["!=", ""]},
+            limit=1,
+        )
+        if rows:
+            uom = rows[0].get("stock_uom")
+    except Exception:
+        uom = None
 
     if not uom:
         for candidate in ("Nos", "Unit", "Each", "Numbers", "Pcs", "Piece"):
