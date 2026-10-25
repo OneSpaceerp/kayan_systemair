@@ -437,3 +437,51 @@ def import_sa_rows(file_url, table):
         "unresolved": sorted({u for u in unresolved if u})[:25],
         "unresolved_count": len({u for u in unresolved if u}),
     }
+
+
+@frappe.whitelist()
+def repair_sa_item_codes(quotation):
+    """
+    Re-resolve item_code on an existing SA quotation's sa_items rows.
+
+    Quotations imported before item resolution existed hold the sheet's model
+    name ("MUB 042 400EV Multibox") where the Item is keyed by article number
+    ("235403"). This fixes those in place instead of re-importing, using the
+    same resolver the importer uses.
+
+    Only rows that resolve to a real Item are changed; anything still
+    unresolved is left alone and reported, since those Items genuinely do not
+    exist yet and need Price List Import.
+    """
+    if not frappe.has_permission("Quotation", "write", doc=quotation):
+        frappe.throw(_("Not permitted to edit this Quotation."), frappe.PermissionError)
+
+    doc = frappe.get_doc("Quotation", quotation)
+    resolve = _item_resolver()
+
+    changed = 0
+    unresolved = []
+    for row in doc.get("sa_items") or []:
+        code = row.get("item_code")
+        article = row.get("sa_article_no")
+        if not (code or article):
+            continue
+        resolved = resolve(code, article)
+        if resolved:
+            if resolved != code:
+                row.item_code = resolved
+                changed += 1
+        else:
+            unresolved.append(code or article)
+
+    if changed:
+        doc.flags.ignore_permissions = True
+        doc.save()
+        frappe.db.commit()
+
+    distinct = sorted({u for u in unresolved if u})
+    return {
+        "changed": changed,
+        "unresolved": distinct[:25],
+        "unresolved_count": len(distinct),
+    }
