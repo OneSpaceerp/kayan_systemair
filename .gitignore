@@ -25,3 +25,11 @@ Thumbs.db
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Office lock files
+~$*
+
+# Customer workbooks dropped in the repo root - project/pricing data,
+# not app source. Keep them local.
+/*.xlsx
+/*.xls
