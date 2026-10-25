@@ -300,8 +300,77 @@ def _item_resolver():
     return resolve
 
 
+SA_FAN_ITEM_GROUP = "SystemAir Axial Fans"
+
+
+def _ensure_sa_item_group():
+    if frappe.db.exists("Item Group", SA_FAN_ITEM_GROUP):
+        return SA_FAN_ITEM_GROUP
+    parent = "Products" if frappe.db.exists("Item Group", "Products") else "All Item Groups"
+    frappe.get_doc({
+        "doctype": "Item Group",
+        "item_group_name": SA_FAN_ITEM_GROUP,
+        "parent_item_group": parent,
+        "is_group": 0,
+    }).insert(ignore_permissions=True)
+    return SA_FAN_ITEM_GROUP
+
+
+def _fan_item_creator():
+    """
+    Create Items for configured fans the price lists do not carry.
+
+    AXC fans are made to order -- the model string encodes diameter, blades,
+    blade angle, poles and motor -- so they appear in no flat price list and
+    Price List Import can never create them. The COST sheet is the only source
+    that has them, which is why creation belongs here.
+
+    Follows the convention already on site: the Item is named by article
+    number (235403) with the model string as item_name.
+    """
+    from kayan_systemair.kayan_systemair.page.price_list_import.price_list_import import (
+        _get_or_create_item,
+        _sanitize_item_name,
+    )
+
+    group = _ensure_sa_item_group()
+    cache = {}
+
+    def create(code, article, row):
+        key = (code, article)
+        if key in cache:
+            return cache[key]
+
+        name = (article or "").strip() or _sanitize_item_name(code or "")
+        if not name:
+            cache[key] = None
+            return None
+
+        try:
+            created = _get_or_create_item(
+                item_name=name,
+                article_no=(article or "").strip(),
+                item_group=group,
+                type_of_fan=row.get("fan_type") or "",
+                primary_factory=row.get("origin") or "",
+                temperature_rate=row.get("smoke_rating") or "",
+                display_name=(code or name),
+            )
+        except Exception:
+            frappe.log_error(
+                frappe.get_traceback(),
+                "kayan_systemair: could not create Item for %s" % (code or article),
+            )
+            created = None
+
+        cache[key] = created
+        return created
+
+    return create
+
+
 @frappe.whitelist()
-def import_sa_rows(file_url, table):
+def import_sa_rows(file_url, table, create_missing_items=1):
     """
     Parse an uploaded Excel/CSV sheet into rows for one of the SystemAir child
     tables. Columns are matched on each field's label or fieldname ignoring
@@ -381,7 +450,15 @@ def import_sa_rows(file_url, table):
         (c for c, df in header_map.items() if df.fieldname == "item_code"), None
     )
 
+    # Creating Items writes to the Item master, so it needs its own permission
+    # rather than riding on Quotation write access.
+    can_create = bool(frappe.parse_json(create_missing_items)) and frappe.has_permission(
+        "Item", "create"
+    )
+    create_item = _fan_item_creator() if can_create else None
+
     out = []
+    created = []
     unresolved = []
     resolve_item = _item_resolver()
     blank_streak = 0
@@ -406,6 +483,10 @@ def import_sa_rows(file_url, table):
             article = row.get("sa_article_no")
             if code or article:
                 resolved = resolve_item(code, article)
+                if not resolved and create_item:
+                    resolved = create_item(code, article, row)
+                    if resolved:
+                        created.append(resolved)
                 if resolved:
                     row["item_code"] = resolved
                 else:
@@ -436,11 +517,13 @@ def import_sa_rows(file_url, table):
         # record that does not exist.
         "unresolved": sorted({u for u in unresolved if u})[:25],
         "unresolved_count": len({u for u in unresolved if u}),
+        "created": sorted(set(created))[:25],
+        "created_count": len(set(created)),
     }
 
 
 @frappe.whitelist()
-def repair_sa_item_codes(quotation):
+def repair_sa_item_codes(quotation, create_missing_items=1):
     """
     Re-resolve item_code on an existing SA quotation's sa_items rows.
 
@@ -458,8 +541,13 @@ def repair_sa_item_codes(quotation):
 
     doc = frappe.get_doc("Quotation", quotation)
     resolve = _item_resolver()
+    can_create = bool(frappe.parse_json(create_missing_items)) and frappe.has_permission(
+        "Item", "create"
+    )
+    create_item = _fan_item_creator() if can_create else None
 
     changed = 0
+    created = []
     unresolved = []
     for row in doc.get("sa_items") or []:
         code = row.get("item_code")
@@ -467,6 +555,10 @@ def repair_sa_item_codes(quotation):
         if not (code or article):
             continue
         resolved = resolve(code, article)
+        if not resolved and create_item:
+            resolved = create_item(code, article, row)
+            if resolved:
+                created.append(resolved)
         if resolved:
             if resolved != code:
                 row.item_code = resolved
@@ -482,6 +574,8 @@ def repair_sa_item_codes(quotation):
     distinct = sorted({u for u in unresolved if u})
     return {
         "changed": changed,
+        "created": sorted(set(created))[:25],
+        "created_count": len(set(created)),
         "unresolved": distinct[:25],
         "unresolved_count": len(distinct),
     }

@@ -360,12 +360,16 @@
         if ((res.unmatched || []).length) {
             msg += '<br><br>' + __('Ignored columns: {0}', [res.unmatched.join(', ')]);
         }
+        if (res.created_count) {
+            msg += '<br><br>' + __('Created {0} Item(s) for configured fans that are in no price list: {1}',
+                [res.created_count, (res.created || []).join(', ')]);
+            if (res.created_count > (res.created || []).length) {
+                msg += ' ' + __('(first {0} shown)', [(res.created || []).length]);
+            }
+        }
         if (res.unresolved_count) {
-            // Rows still import; item_code is left blank rather than pointing
-            // at an Item that does not exist.
-            msg += '<br><br>' + __('{0} item(s) matched no Item record: {1}',
+            msg += '<br><br>' + __('{0} item(s) could not be matched or created: {1}',
                 [res.unresolved_count, (res.unresolved || []).join(', ')]);
-            msg += '<br>' + __('Their rows were imported as-is. Run Price List Import on the price sheets to create these Items, then re-import.');
             if (res.unresolved_count > (res.unresolved || []).length) {
                 msg += ' ' + __('(first {0} shown)', [(res.unresolved || []).length]);
             }
