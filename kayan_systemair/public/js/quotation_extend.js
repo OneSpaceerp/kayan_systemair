@@ -348,6 +348,15 @@
         if ((res.unmatched || []).length) {
             msg += '<br><br>' + __('Ignored columns: {0}', [res.unmatched.join(', ')]);
         }
+        if (res.unresolved_count) {
+            // Rows still import; item_code is left blank rather than pointing
+            // at an Item that does not exist.
+            msg += '<br><br>' + __('{0} item(s) matched no Item record and were left blank: {1}',
+                [res.unresolved_count, (res.unresolved || []).join(', ')]);
+            if (res.unresolved_count > (res.unresolved || []).length) {
+                msg += ' ' + __('(first {0} shown)', [(res.unresolved || []).length]);
+            }
+        }
         frappe.msgprint({
             title: __('Import Complete'),
             indicator: 'green',

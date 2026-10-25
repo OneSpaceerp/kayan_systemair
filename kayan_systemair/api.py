@@ -264,6 +264,42 @@ def _coerce(df, value):
     return str(value).strip() or None
 
 
+def _item_resolver():
+    """
+    Resolve whatever a sheet calls an item to a real Item name.
+
+    Items on this site are named by article number (235403) while the COST
+    workbook's "Item Code (Model)" column carries the model name
+    ("MUB 042 400EV Multibox"), so importing that column straight into the
+    item_code Link produced "Item ... not found".
+
+    Tries, in order: the code as an Item name, the article as an Item name,
+    the article against Item.sa_article_no, then the code against
+    Item.item_name. Results are cached because a sheet repeats models heavily.
+    """
+    cache = {}
+
+    def resolve(code, article):
+        key = (code, article)
+        if key in cache:
+            return cache[key]
+
+        found = None
+        for candidate in (code, article):
+            if candidate and frappe.db.exists("Item", candidate):
+                found = candidate
+                break
+        if not found and article:
+            found = frappe.db.get_value("Item", {"sa_article_no": article}, "name")
+        if not found and code:
+            found = frappe.db.get_value("Item", {"item_name": code}, "name")
+
+        cache[key] = found
+        return found
+
+    return resolve
+
+
 @frappe.whitelist()
 def import_sa_rows(file_url, table):
     """
@@ -346,6 +382,8 @@ def import_sa_rows(file_url, table):
     )
 
     out = []
+    unresolved = []
+    resolve_item = _item_resolver()
     blank_streak = 0
     for raw in rows[header_idx + 1:]:
         row = {}
@@ -364,6 +402,15 @@ def import_sa_rows(file_url, table):
 
         if row:
             blank_streak = 0
+            code = row.get("item_code")
+            article = row.get("sa_article_no")
+            if code or article:
+                resolved = resolve_item(code, article)
+                if resolved:
+                    row["item_code"] = resolved
+                else:
+                    row.pop("item_code", None)
+                    unresolved.append(code or article)
             out.append(row)
             if len(out) >= MAX_IMPORT_ROWS:
                 break
@@ -378,4 +425,9 @@ def import_sa_rows(file_url, table):
         "matched": sorted({df.label or df.fieldname for df in header_map.values()}),
         "unmatched": unmatched,
         "truncated": len(out) >= MAX_IMPORT_ROWS,
+        # Distinct items the sheet named that match no Item record. Their rows
+        # still import, with item_code left blank rather than pointing at a
+        # record that does not exist.
+        "unresolved": sorted({u for u in unresolved if u})[:25],
+        "unresolved_count": len({u for u in unresolved if u}),
     }
