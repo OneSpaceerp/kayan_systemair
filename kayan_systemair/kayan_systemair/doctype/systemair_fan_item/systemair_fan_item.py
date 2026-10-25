@@ -103,12 +103,16 @@ class SystemAirFanItem(Document):
 
     def _create_erp_item(self):
         """Create a new ERPNext Item from this fan item's data."""
+        from kayan_systemair.kayan_systemair.page.price_list_import.price_list_import import (
+            _default_stock_uom,
+        )
+
         item = frappe.get_doc({
             "doctype": "Item",
             "item_code": self.model_code,
             "item_name": self.model_code,
             "item_group": "SystemAir Axial Fans",
-            "stock_uom": "Nos",
+            "stock_uom": _default_stock_uom(),
             "is_purchase_item": 1,
             "is_sales_item": 1,
             "is_stock_item": 0,

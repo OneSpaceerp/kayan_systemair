@@ -673,6 +673,49 @@ def _normalize_temperature_rate(val):
     return ""
 
 
+def _default_stock_uom():
+    """
+    A UOM that actually exists on this site.
+
+    "Nos" is ERPNext's out-of-the-box default but is not present everywhere --
+    this site does not have it, so every Item creation failed with
+    LinkValidationError: Could not find Default Unit of Measure: Nos.
+
+    Whatever existing Items already use is guaranteed to exist, so prefer the
+    most common one and fall back to the usual names, then to any UOM at all.
+    Cached on frappe.local so a bulk import does not repeat the query, while
+    still being re-read on the next request.
+    """
+    cached = getattr(frappe.local, "_sa_default_stock_uom", None)
+    if cached:
+        return cached
+
+    uom = None
+    rows = frappe.db.get_all(
+        "Item",
+        fields=["stock_uom", "count(name) as uses"],
+        filters={"stock_uom": ["!=", ""]},
+        group_by="stock_uom",
+        order_by="uses desc",
+        limit=1,
+    )
+    if rows:
+        uom = rows[0].get("stock_uom")
+
+    if not uom:
+        for candidate in ("Nos", "Unit", "Each", "Numbers", "Pcs", "Piece"):
+            if frappe.db.exists("UOM", candidate):
+                uom = candidate
+                break
+
+    if not uom:
+        any_uom = frappe.db.get_all("UOM", pluck="name", limit=1)
+        uom = any_uom[0] if any_uom else "Nos"
+
+    frappe.local._sa_default_stock_uom = uom
+    return uom
+
+
 def _get_or_create_item(
     item_name,
     article_no="",
@@ -730,7 +773,7 @@ def _get_or_create_item(
         "item_code": item_name[:140],
         "item_name": display_name[:140],
         "item_group": item_group,
-        "stock_uom": "Nos",
+        "stock_uom": _default_stock_uom(),
         "is_purchase_item": 1,
         "is_sales_item": 1,
         "is_stock_item": 0,
