@@ -55,10 +55,37 @@ def before_validate(doc, method=None):
         return
     doc.flags.ignore_mandatory = True
     doc.flags.ignore_links = True
+    _purge_unknown_items(doc)
     doc.currency = "EUR"
     if not flt(doc.get("sa_eur_egp_rate")):
         doc.sa_eur_egp_rate = 1.0
     doc.conversion_rate = flt(doc.sa_eur_egp_rate)
+
+
+
+def _purge_unknown_items(doc):
+    """
+    Drop standard items rows whose Item does not exist.
+
+    ERPNext resolves every row of the standard items table inside its own
+    validate(), and Frappe runs a controller's validate() BEFORE the validate
+    doc_event hooks. So a row naming a missing Item raises DoesNotExistError --
+    surfacing as a 404 on savedocs with "Item <name> not found" -- before
+    _sync_to_standard_items ever gets the chance to rebuild the table.
+
+    Clearing them here, ahead of the controller, is what actually prevents it;
+    the rows are rebuilt from sa_items later in the same save.
+    """
+    rows = doc.get("items") or []
+    if not rows:
+        return
+
+    keep = [
+        row for row in rows
+        if row.get("item_code") and frappe.db.exists("Item", row.get("item_code"))
+    ]
+    if len(keep) != len(rows):
+        doc.set("items", keep)
 
 
 def before_save(doc, method=None):
