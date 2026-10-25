@@ -409,8 +409,14 @@ def import_sa_rows(file_url, table):
                 if resolved:
                     row["item_code"] = resolved
                 else:
-                    row.pop("item_code", None)
+                    # Keep whatever the sheet said rather than blanking it:
+                    # item_code is mandatory, so a blank blocks the save of the
+                    # whole quotation, which is worse than a value pointing at
+                    # an Item that has not been created yet. These are reported
+                    # back so the missing Items can be imported.
                     unresolved.append(code or article)
+                    if not code and article:
+                        row["item_code"] = article
             out.append(row)
             if len(out) >= MAX_IMPORT_ROWS:
                 break

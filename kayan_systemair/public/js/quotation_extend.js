@@ -351,8 +351,9 @@
         if (res.unresolved_count) {
             // Rows still import; item_code is left blank rather than pointing
             // at an Item that does not exist.
-            msg += '<br><br>' + __('{0} item(s) matched no Item record and were left blank: {1}',
+            msg += '<br><br>' + __('{0} item(s) matched no Item record: {1}',
                 [res.unresolved_count, (res.unresolved || []).join(', ')]);
+            msg += '<br>' + __('Their rows were imported as-is. Run Price List Import on the price sheets to create these Items, then re-import.');
             if (res.unresolved_count > (res.unresolved || []).length) {
                 msg += ' ' + __('(first {0} shown)', [(res.unresolved || []).length]);
             }
