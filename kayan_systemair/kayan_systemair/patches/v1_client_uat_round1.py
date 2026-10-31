@@ -88,17 +88,15 @@ def _delete_renamed_custom_fields():
 
 def _remove_header_unit_custom_fields():
     """
-    Issue 3: airflow / ESP unit dropdowns move from quotation header to each
-    fan row.  Delete the header Custom Fields here so bench migrate does not
-    re-create them from stale DocType cache.  The DB columns become orphaned
-    (Frappe never drops columns automatically — harmless).
+    Superseded: this moved the airflow / ESP unit pickers from the quotation
+    header down to each fan row. They have since been moved back to the header
+    and are shipped as Custom Fields again, so deleting them here would wipe
+    them on any site that runs this patch for the first time.
+
+    Kept as a no-op rather than dropped: patches.txt entries run once per site
+    and removing the entry would not un-run it where it already has.
     """
-    for cf_name in ["Quotation-sa_flow_unit", "Quotation-sa_esp_unit"]:
-        if frappe.db.exists("Custom Field", cf_name):
-            frappe.delete_doc(
-                "Custom Field", cf_name,
-                ignore_permissions=True, force=True
-            )
+    return
 
 
 # ---------------------------------------------------------------------------

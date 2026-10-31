@@ -15,9 +15,7 @@
   "origin",
   "sa_article_no",
   "airflow_ls",
-  "airflow_unit",
   "esp_pa",
-  "esp_unit",
   "qty",
   "germany_list_price",
   "malaysia_list_price",
@@ -107,23 +105,9 @@
    "label": "Airflow"
   },
   {
-   "fieldname": "airflow_unit",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Flow Unit",
-   "default": "l/s"
-  },
-  {
    "fieldname": "esp_pa",
    "fieldtype": "Data",
    "label": "ESP"
-  },
-  {
-   "fieldname": "esp_unit",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Pressure Unit",
-   "default": "Pa"
   },
   {
    "fieldname": "qty",
@@ -268,7 +252,7 @@
  "editable_grid": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-11 00:00:00.000000",
+ "modified": "2026-10-31 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kayan Systemair",
  "name": "SystemAir Quotation Item",

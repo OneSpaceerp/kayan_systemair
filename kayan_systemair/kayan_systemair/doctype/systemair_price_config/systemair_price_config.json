@@ -45,7 +45,7 @@
   },
   {
    "default": "1.1235",
-   "description": "Combined cost factor = CF1 \u00c3\u2014 CF2 (auto-calculated, read-only)",
+   "description": "Combined cost factor = CF1 Ã— CF2 (auto-calculated, read-only)",
    "fieldname": "combined_cost_factor",
    "fieldtype": "Float",
    "label": "Combined Cost Factor",
@@ -77,7 +77,7 @@
    "description": "Default EUR to EGP exchange rate used in pricing",
    "fieldname": "default_currency_rate",
    "fieldtype": "Float",
-   "label": "Default EUR\u00e2\u2020\u2019EGP Rate",
+   "label": "Default EURâ†’EGP Rate",
    "precision": "4",
    "reqd": 1
   },
@@ -91,7 +91,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 00:00:00.000000",
+ "modified": "2026-10-31 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kayan Systemair",
  "name": "SystemAir Price Config",
