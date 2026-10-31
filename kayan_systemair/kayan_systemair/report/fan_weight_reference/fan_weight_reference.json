@@ -6,19 +6,25 @@
  "doctype": "Report",
  "filters": [],
  "is_standard": "Yes",
- "modified": "2026-04-11 00:00:00.000000",
+ "modified": "2026-10-31 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kayan Systemair",
  "name": "Fan Weight Reference",
  "owner": "Administrator",
  "prepared_report": 0,
- "query": "",
+ "query": "SELECT\n    nominal_diameter AS `Nominal Diameter (mm)`,\n    min_weight_kg    AS `Min Weight (kg)`,\n    max_weight_kg    AS `Max Weight (kg)`\nFROM `tabSystemAir Weight Table`\nORDER BY nominal_diameter ASC",
  "ref_doctype": "SystemAir Weight Table",
  "report_name": "Fan Weight Reference",
  "report_type": "Query Report",
  "roles": [
-  {"role": "SystemAir Sales User"},
-  {"role": "SystemAir Sales Manager"},
-  {"role": "SystemAir Admin"}
+  {
+   "role": "SystemAir Sales User"
+  },
+  {
+   "role": "SystemAir Sales Manager"
+  },
+  {
+   "role": "SystemAir Admin"
+  }
  ]
 }

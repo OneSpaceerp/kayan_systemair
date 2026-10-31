@@ -6,19 +6,25 @@
  "doctype": "Report",
  "filters": [],
  "is_standard": "Yes",
- "modified": "2026-04-11 00:00:00.000000",
+ "modified": "2026-10-31 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Kayan Systemair",
  "name": "SystemAir Price List Viewer",
  "owner": "Administrator",
  "prepared_report": 0,
- "query": "",
+ "query": "SELECT\n    i.item_code          AS `Item Code`,\n    i.item_name          AS `Item Name`,\n    i.item_group         AS `Product Group`,\n    ip_de.price_list_rate AS `Germany Price (EUR)`,\n    ip_my.price_list_rate AS `Malaysia Price (EUR)`,\n    i.sa_primary_factory  AS `Factory`,\n    GREATEST(\n        COALESCE(ip_de.modified, '1970-01-01'),\n        COALESCE(ip_my.modified, '1970-01-01')\n    )                     AS `Last Updated`\nFROM `tabItem` i\nLEFT JOIN `tabItem Price` ip_de\n    ON ip_de.item_code = i.item_code\n    AND ip_de.price_list = 'Systemair Germany 2026'\n    AND ip_de.selling = 1\nLEFT JOIN `tabItem Price` ip_my\n    ON ip_my.item_code = i.item_code\n    AND ip_my.price_list = 'Systemair Malaysia 2026'\n    AND ip_my.selling = 1\nWHERE\n    i.item_group = 'SystemAir Axial Fans'\n    AND i.disabled = 0\n    AND (ip_de.price_list_rate IS NOT NULL OR ip_my.price_list_rate IS NOT NULL)\nORDER BY\n    i.item_code ASC",
  "ref_doctype": "Item",
  "report_name": "SystemAir Price List Viewer",
  "report_type": "Query Report",
  "roles": [
-  {"role": "SystemAir Sales User"},
-  {"role": "SystemAir Sales Manager"},
-  {"role": "SystemAir Admin"}
+  {
+   "role": "SystemAir Sales User"
+  },
+  {
+   "role": "SystemAir Sales Manager"
+  },
+  {
+   "role": "SystemAir Admin"
+  }
  ]
 }
