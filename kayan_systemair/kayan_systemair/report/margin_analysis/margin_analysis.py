@@ -86,23 +86,23 @@ def get_columns():
         },
         {
             "fieldname": "ddp_cost",
-            "label": _("DDP Cost (EGP)"),
+            "label": _("DDP Cost (EUR)"),
             "fieldtype": "Currency",
-            "options": "EGP",
+            "options": "EUR",
             "width": 140,
         },
         {
-            "fieldname": "total_price_egp",
-            "label": _("Selling Price (EGP)"),
+            "fieldname": "total_price_eur",
+            "label": _("Selling Price (EUR)"),
             "fieldtype": "Currency",
-            "options": "EGP",
+            "options": "EUR",
             "width": 150,
         },
         {
             "fieldname": "gross_margin",
-            "label": _("Gross Margin (EGP)"),
+            "label": _("Gross Margin (EUR)"),
             "fieldtype": "Currency",
-            "options": "EGP",
+            "options": "EUR",
             "width": 150,
         },
         {
@@ -131,7 +131,7 @@ def get_data(filters):
             sqi.cif,
             sqi.customs_rate,
             sqi.ddp_cost,
-            sqi.total_price_egp,
+            sqi.total_price_eur,
             sqi.margin_percent
         FROM `tabQuotation` q
         JOIN `tabSystemAir Quotation Item` sqi
@@ -148,7 +148,7 @@ def get_data(filters):
 
     data = []
     for row in rows:
-        selling = flt(row.total_price_egp)
+        selling = flt(row.total_price_eur)
         ddp = flt(row.ddp_cost)
         gross_margin = flt(selling - ddp, 2)
         margin_pct = flt(row.margin_percent, 2)
@@ -173,7 +173,7 @@ def get_data(filters):
             "cif": flt(row.cif, 2),
             "customs_rate": flt(row.customs_rate, 2),
             "ddp_cost": ddp,
-            "total_price_egp": selling,
+            "total_price_eur": selling,
             "gross_margin": gross_margin,
             "margin_percent": margin_pct,
         })

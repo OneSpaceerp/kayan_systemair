@@ -2,7 +2,7 @@
 SystemAir Quotation Summary Report
 ====================================
 Script Report — Columns: Quotation No., Date, Customer, Project Ref, Status,
-Item Count, Total CIF (EUR), Grand Total (EGP), Effective Margin %
+Item Count, Total CIF (EUR), Grand Total (EGP)
 
 Filters: date_from, date_to, customer, status
 """
