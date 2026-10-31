@@ -7,3 +7,5 @@ recursive-include kayan_systemair/kayan_systemair/report *.json *.sql *.py
 recursive-include kayan_systemair/kayan_systemair/workspace *.json
 recursive-include kayan_systemair/fixtures *.json
 recursive-include kayan_systemair/print_format *.json *.html
+recursive-include kayan_systemair/kayan_systemair/sidebar *.json
+recursive-include kayan_systemair/dock *.json
