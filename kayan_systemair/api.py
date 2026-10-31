@@ -585,3 +585,62 @@ def repair_sa_item_codes(quotation, create_missing_items=1):
         "unresolved": distinct[:25],
         "unresolved_count": len(distinct),
     }
+
+
+@frappe.whitelist()
+def download_sa_table(table, quotation=None):
+    """
+    Download an SA child table as .xlsx, or an empty template when there is
+    nothing to export.
+
+    Columns are exactly the fields import_sa_rows accepts -- non-layout and
+    not read-only -- so a downloaded file can be filled in and uploaded
+    straight back without reshaping it. Read-only columns are excluded on
+    purpose: the pricing engine owns them and the importer ignores them.
+    """
+    child_doctype = SA_IMPORT_TABLES.get(table)
+    if not child_doctype:
+        frappe.throw(_("Unknown table {0}.").format(table))
+
+    meta = frappe.get_meta(child_doctype)
+    fields = [
+        df
+        for df in meta.fields
+        if df.fieldtype not in _LAYOUT_FIELDTYPES and not df.read_only
+    ]
+
+    rows = []
+    if quotation:
+        if not frappe.has_permission("Quotation", "read", doc=quotation):
+            frappe.throw(
+                _("Not permitted to read this Quotation."), frappe.PermissionError
+            )
+        rows = frappe.get_doc("Quotation", quotation).get(table) or []
+
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = child_doctype[:31]
+    ws.append([df.label or df.fieldname for df in fields])
+
+    for row in rows:
+        ws.append([row.get(df.fieldname) for df in fields])
+
+    # Give the header row a sensible width so the template is usable as-is.
+    for idx, df in enumerate(fields, start=1):
+        label = df.label or df.fieldname
+        ws.column_dimensions[
+            openpyxl.utils.get_column_letter(idx)
+        ].width = min(max(len(label) + 2, 12), 40)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    wb.close()
+
+    frappe.response["filename"] = "%s-%s.xlsx" % (
+        table,
+        quotation if rows else "template",
+    )
+    frappe.response["filecontent"] = buf.getvalue()
+    frappe.response["type"] = "binary"

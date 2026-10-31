@@ -273,23 +273,50 @@
         if (!fd || !fd.$wrapper) return;
 
         var $wrapper = fd.$wrapper;
-        // refresh fires repeatedly; never stack a second button on the grid.
+        // refresh fires repeatedly; never stack a second set on the grid.
         if ($wrapper.find('.sa-grid-upload').length) return;
 
-        var $btn = $('<button type="button" class="btn btn-xs btn-secondary sa-grid-upload"></button>')
+        var $upload = $('<button type="button" class="btn btn-xs btn-secondary sa-grid-upload"></button>')
             .text(__('Upload'))
             .css('margin-left', '8px')
             .on('click', function() { _open_grid_upload(frm, fieldname); });
 
+        var $download = $('<button type="button" class="btn btn-xs btn-secondary sa-grid-download"></button>')
+            .text(__('Download'))
+            .css('margin-left', '8px')
+            .on('click', function() { _open_grid_download(frm, fieldname); });
+
         // Sit beside "Add row", falling back through the footer to the grid
-        // wrapper so the button always lands somewhere visible.
+        // wrapper so the buttons always land somewhere visible.
         var $add_row = $wrapper.find('.grid-add-row').first();
-        if ($add_row.length) { $add_row.after($btn); return; }
+        if ($add_row.length) { $add_row.after($download).after($upload); return; }
 
         var $footer = $wrapper.find('.grid-footer').first();
-        if ($footer.length) { $footer.append($btn); return; }
+        if ($footer.length) { $footer.append($upload).append($download); return; }
 
-        $wrapper.append($btn);
+        $wrapper.append($upload).append($download);
+    }
+
+    function _open_grid_download(frm, fieldname) {
+        var rows = (frm.doc[fieldname] || []).length;
+
+        // The server reads rows from the saved document, so an unsaved form
+        // has nothing to export -- say so rather than hand back a template
+        // that looks like data loss.
+        if (rows && frm.is_dirty()) {
+            frappe.msgprint({
+                title: __('Save First'),
+                indicator: 'orange',
+                message: __('Save the quotation before downloading, otherwise only a blank template can be produced.')
+            });
+            return;
+        }
+
+        var params = 'table=' + encodeURIComponent(fieldname);
+        if (rows && !frm.is_new()) {
+            params += '&quotation=' + encodeURIComponent(frm.doc.name);
+        }
+        window.open('/api/method/kayan_systemair.api.download_sa_table?' + params, '_blank');
     }
 
     function _open_grid_upload(frm, fieldname) {
