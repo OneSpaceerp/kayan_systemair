@@ -139,7 +139,6 @@ def _apply_defaults_to_items(doc):
     Only fills if the field is falsy (None, 0, or empty string).
     """
     default_discount = flt(doc.get("sa_default_discount"))
-    default_margin = flt(doc.get("sa_default_margin"))
     default_customs = flt(doc.get("sa_default_customs"))
     default_add_disc = flt(doc.get("sa_additional_discount"))
 
@@ -151,14 +150,13 @@ def _apply_defaults_to_items(doc):
             row.additional_discount = default_add_disc
 
         if not flt(row.get("margin_percent")):
-            if default_margin:
-                row.margin_percent = default_margin
-            else:
-                try:
-                    config = frappe.get_cached_doc("SystemAir Price Config")
-                    row.margin_percent = flt(config.default_margin)
-                except Exception:
-                    row.margin_percent = 50.0
+            # Margin lives on the row. SystemAir Price Config only seeds a row
+            # that has none yet; there is no quotation-level margin any more.
+            try:
+                config = frappe.get_cached_doc("SystemAir Price Config")
+                row.margin_percent = flt(config.default_margin)
+            except Exception:
+                row.margin_percent = 50.0
 
         if not flt(row.get("customs_rate")) and default_customs:
             row.customs_rate = default_customs
@@ -291,7 +289,6 @@ def _compute_quotation_totals(doc):
     - sa_total_ddp_eur      : Σ ddp_cost (EUR)
     - sa_grand_total_eur    : Σ total_price_eur + unlinked-accessory totals
     - sa_grand_total_egp_info: grand_total_eur × rate (when rate ≠ 1)
-    - sa_effective_margin   : (grand_total - total_ddp) / grand_total × 100
     """
     total_basic_eur = 0.0
     total_cif_eur = 0.0
@@ -316,13 +313,6 @@ def _compute_quotation_totals(doc):
 
     rate = flt(doc.get("sa_eur_egp_rate") or 1.0, 4)
     doc.sa_grand_total_egp_info = flt(grand_total_eur * rate, 2) if rate != 1.0 else 0.0
-
-    if grand_total_eur > 0:
-        doc.sa_effective_margin = flt(
-            (grand_total_eur - total_ddp_eur) / grand_total_eur * 100.0, 2
-        )
-    else:
-        doc.sa_effective_margin = 0.0
 
 
 def _sync_to_standard_items(doc):

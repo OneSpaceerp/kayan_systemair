@@ -22,6 +22,7 @@ def after_install():
     _ensure_smoke_rating_defaults()
     _apply_sidebar_icons()
     _ensure_dock()
+    _remove_obsolete_fields()
 
 
 def after_migrate():
@@ -35,6 +36,7 @@ def after_migrate():
     _ensure_smoke_rating_defaults()
     _apply_sidebar_icons()
     _ensure_dock()
+    _remove_obsolete_fields()
 
 
 # ---------------------------------------------------------------------------
@@ -498,4 +500,38 @@ def _ensure_dock():
         # silent pass.
         frappe.log_error(
             frappe.get_traceback(), "kayan_systemair: could not create Dock"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Fields removed from the app
+#
+# Dropping a Custom Field from fixtures does not remove it from a site that
+# already has it, so the obsolete ones are deleted here. This drops their
+# columns and the values in them, which is the point: margin is now held per
+# row on Margin % (MG), with no quotation-level default or derived figure.
+# ---------------------------------------------------------------------------
+
+OBSOLETE_CUSTOM_FIELDS = (
+    "Quotation-sa_default_margin",
+    "Quotation-sa_effective_margin",
+)
+
+
+def _remove_obsolete_fields():
+    try:
+        removed = False
+        for name in OBSOLETE_CUSTOM_FIELDS:
+            if frappe.db.exists("Custom Field", name):
+                frappe.delete_doc(
+                    "Custom Field", name, ignore_permissions=True, force=True
+                )
+                removed = True
+        if removed:
+            frappe.db.commit()
+            frappe.clear_cache(doctype="Quotation")
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            "kayan_systemair: could not remove obsolete fields",
         )

@@ -72,12 +72,6 @@ def get_columns():
             "options": "EGP",
             "width": 150,
         },
-        {
-            "fieldname": "sa_effective_margin",
-            "label": _("Effective Margin %"),
-            "fieldtype": "Percent",
-            "width": 130,
-        },
     ]
 
 
@@ -94,8 +88,7 @@ def get_data(filters):
             q.status,
             COUNT(DISTINCT sqi.name) AS item_count,
             q.sa_total_cif_eur,
-            q.sa_grand_total_egp,
-            q.sa_effective_margin
+            q.sa_grand_total_egp_info
         FROM `tabQuotation` q
         LEFT JOIN `tabSystemAir Quotation Item` sqi
             ON sqi.parent = q.name AND sqi.parenttype = 'Quotation'
@@ -120,8 +113,7 @@ def get_data(filters):
             "status": row.status,
             "item_count": row.item_count or 0,
             "sa_total_cif_eur": flt(row.sa_total_cif_eur, 2),
-            "sa_grand_total_egp": flt(row.sa_grand_total_egp, 2),
-            "sa_effective_margin": flt(row.sa_effective_margin, 2),
+            "sa_grand_total_egp": flt(row.sa_grand_total_egp_info, 2),
         })
 
     return data

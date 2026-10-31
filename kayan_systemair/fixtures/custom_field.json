@@ -228,19 +228,6 @@
  },
  {
   "doctype": "Custom Field",
-  "name": "Quotation-sa_default_margin",
-  "dt": "Quotation",
-  "fieldname": "sa_default_margin",
-  "fieldtype": "Percent",
-  "label": "Default Margin %",
-  "default": "50",
-  "depends_on": "eval:doc.is_systemair_quotation==1",
-  "insert_after": "sa_additional_discount",
-  "module": "Kayan Systemair",
-  "translatable": 0
- },
- {
-  "doctype": "Custom Field",
   "name": "Quotation-sa_shipping_rate",
   "dt": "Quotation",
   "fieldname": "sa_shipping_rate",
@@ -248,7 +235,7 @@
   "label": "Shipping Rate %",
   "default": "12",
   "depends_on": "eval:doc.is_systemair_quotation==1 && doc.sa_shipping_mode!='Lump Sum'",
-  "insert_after": "sa_default_margin",
+  "insert_after": "sa_additional_discount",
   "module": "Kayan Systemair",
   "translatable": 0
  },
@@ -349,11 +336,11 @@
   "fieldtype": "Float",
   "label": "Grand Total (EUR)",
   "precision": "2",
-  "read_only": 1,
   "depends_on": "eval:doc.is_systemair_quotation==1",
   "insert_after": "sa_totals_col_1",
   "module": "Kayan Systemair",
-  "translatable": 0
+  "translatable": 0,
+  "description": "Computed from the rows. Type a target here and the per-row Margin % (MG) is worked back from it."
  },
  {
   "doctype": "Custom Field",
@@ -395,26 +382,12 @@
  },
  {
   "doctype": "Custom Field",
-  "name": "Quotation-sa_effective_margin",
-  "dt": "Quotation",
-  "fieldname": "sa_effective_margin",
-  "fieldtype": "Percent",
-  "label": "Effective Margin %",
-  "precision": "2",
-  "read_only": 1,
-  "depends_on": "eval:doc.is_systemair_quotation==1",
-  "insert_after": "sa_totals_col_2",
-  "module": "Kayan Systemair",
-  "translatable": 0
- },
- {
-  "doctype": "Custom Field",
   "name": "Quotation-sa_tables_section",
   "dt": "Quotation",
   "fieldname": "sa_tables_section",
   "fieldtype": "Section Break",
   "depends_on": "eval:doc.is_systemair_quotation==1",
-  "insert_after": "sa_effective_margin",
+  "insert_after": "sa_totals_col_2",
   "module": "Kayan Systemair",
   "translatable": 0
  },

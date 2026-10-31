@@ -96,8 +96,8 @@
         // Header-level field changes → recalculate all rows
         sa_eur_egp_rate:          function(frm) { recalculate_all_rows(frm); },
         sa_default_discount:      function(frm) { apply_defaults_and_recalculate(frm); },
-        sa_default_margin:        function(frm) { apply_defaults_and_recalculate(frm); },
         sa_default_customs:       function(frm) { apply_defaults_and_recalculate(frm); },
+        sa_grand_total_eur:       function(frm) { back_solve_margin(frm); },
         sa_additional_discount:   function(frm) { apply_defaults_and_recalculate(frm); },
         sa_shipping_rate:         function(frm) { recalculate_all_rows(frm); },
         sa_shipping_mode:         function(frm) {
@@ -225,7 +225,6 @@
         frm.toggle_display('sa_eur_egp_rate',        is_sa);
         frm.toggle_display('sa_default_discount',    is_sa);
         frm.toggle_display('sa_additional_discount', is_sa);
-        frm.toggle_display('sa_default_margin',      is_sa);
         frm.toggle_display('sa_shipping_mode',       is_sa);
         frm.toggle_display('sa_shipping_rate',
             is_sa && frm.doc.sa_shipping_mode !== 'Lump Sum');
@@ -239,7 +238,6 @@
         frm.toggle_display('sa_grand_total_eur',     is_sa);
         frm.toggle_display('sa_grand_total_egp_info',
             is_sa && flt(frm.doc.sa_eur_egp_rate) !== 1.0);
-        frm.toggle_display('sa_effective_margin',    is_sa);
         frm.toggle_display('print_internal',         is_sa);
 
         if (is_sa) {
@@ -360,8 +358,6 @@
                     row.supplier_discount = flt(frm.doc.sa_default_discount);
                 if (data.additional_discount === undefined && flt(frm.doc.sa_additional_discount) > 0)
                     row.additional_discount = flt(frm.doc.sa_additional_discount);
-                if (data.margin_percent === undefined && flt(frm.doc.sa_default_margin) > 0)
-                    row.margin_percent = flt(frm.doc.sa_default_margin);
                 if (data.customs_rate === undefined && flt(frm.doc.sa_default_customs) > 0)
                     row.customs_rate = flt(frm.doc.sa_default_customs);
             }
@@ -420,9 +416,6 @@
                 if (!flt(frm.doc.sa_eur_egp_rate)) {
                     // Default to 1.0 (pure EUR) unless config has a different rate
                     frm.set_value('sa_eur_egp_rate', cfg.default_currency_rate || 1.0);
-                }
-                if (!flt(frm.doc.sa_default_margin)) {
-                    frm.set_value('sa_default_margin', cfg.default_margin);
                 }
                 if (!flt(frm.doc.sa_shipping_rate)) {
                     frm.set_value('sa_shipping_rate', cfg.default_shipping_rate);
@@ -677,10 +670,6 @@
                 frappe.model.set_value(row.doctype, row.name, 'supplier_discount',
                     flt(frm.doc.sa_default_discount));
             }
-            if (flt(frm.doc.sa_default_margin) > 0) {
-                frappe.model.set_value(row.doctype, row.name, 'margin_percent',
-                    flt(frm.doc.sa_default_margin));
-            }
             if (flt(frm.doc.sa_default_customs) > 0) {
                 frappe.model.set_value(row.doctype, row.name, 'customs_rate',
                     flt(frm.doc.sa_default_customs));
@@ -766,7 +755,9 @@
         var supplier_disc    = flt(row.supplier_discount);
         var additional_disc  = flt(row.additional_discount);
         var customs_rate     = flt(row.customs_rate);
-        var margin_percent   = flt(row.margin_percent) || flt(frm.doc.sa_default_margin) || 50;
+        // Margin is the row's own. There is no quotation-level default:
+        // SystemAir Price Config seeds a row that has none, server-side.
+        var margin_percent   = flt(row.margin_percent);
         var shipping_rate    = flt(frm.doc.sa_shipping_rate) || 12;
 
         var cf = (frappe.boot.systemair_config && frappe.boot.systemair_config.combined_cost_factor)
@@ -818,6 +809,63 @@
     // Update quotation-level totals
     // Issue 4: only UNLINKED accessories contribute to grand total
     // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Grand Total (EUR) typed by hand -> per-row Margin % (MG)
+    // ------------------------------------------------------------------
+    var _solving_margin = false;
+
+    function back_solve_margin(frm) {
+        if (!frm.doc.is_systemair_quotation || _solving_margin) return;
+
+        var target = flt(frm.doc.sa_grand_total_eur);
+        if (target <= 0) return;
+
+        // Unlinked accessories sit in the grand total but carry no margin, so
+        // only the fan portion is solved for.
+        var acc_total = 0;
+        (frm.doc.sa_accessories || []).forEach(function(row) {
+            if (!(row.linked_fan_sn || '').trim()) acc_total += flt(row.total_price_eur);
+        });
+
+        var total_ddp = 0;
+        (frm.doc.sa_items || []).forEach(function(row) {
+            total_ddp += flt(row.ddp_cost);
+        });
+
+        if (total_ddp <= 0) {
+            frappe.msgprint({
+                title: __('Cannot Derive Margin'),
+                indicator: 'orange',
+                message: __('The rows need a cost before a margin can be worked back from the grand total.')
+            });
+            return;
+        }
+
+        // total_price = ddp x (1 + margin/100), so the uniform margin that
+        // lands on the target is (target / total_ddp - 1) x 100.
+        var margin = flt(((target - acc_total) / total_ddp - 1.0) * 100.0, 2);
+
+        _solving_margin = true;
+        try {
+            // Assign directly: set_value per row would fire the margin_percent
+            // handler hundreds of times on a large quotation.
+            (frm.doc.sa_items || []).forEach(function(row) {
+                row.margin_percent = margin;
+            });
+            frm.refresh_field('sa_items');
+            recalculate_all_rows(frm);
+            apply_margin_colors(frm);
+        } finally {
+            _solving_margin = false;
+        }
+
+        frappe.show_alert({
+            message: __('Margin % (MG) set to {0}% on {1} row(s).',
+                [margin, (frm.doc.sa_items || []).length]),
+            indicator: margin < 0 ? 'red' : 'green'
+        });
+    }
+
     function update_quotation_totals(frm) {
         if (!frm.doc.is_systemair_quotation) return;
 
@@ -837,15 +885,10 @@
             }
         });
 
-        var eff_margin = (grand_total > 0)
-            ? flt((grand_total - total_ddp) / grand_total * 100, 2)
-            : 0;
-
         frm.doc.sa_total_basic_eur  = flt(total_basic, 2);
         frm.doc.sa_total_cif_eur    = flt(total_cif, 2);
         frm.doc.sa_total_ddp_eur    = flt(total_ddp, 2);
         frm.doc.sa_grand_total_eur  = flt(grand_total, 2);
-        frm.doc.sa_effective_margin = eff_margin;
 
         var rate = flt(frm.doc.sa_eur_egp_rate) || 1.0;
         frm.doc.sa_grand_total_egp_info = rate !== 1.0
@@ -857,7 +900,6 @@
         frm.refresh_field('sa_total_ddp_eur');
         frm.refresh_field('sa_grand_total_eur');
         frm.refresh_field('sa_grand_total_egp_info');
-        frm.refresh_field('sa_effective_margin');
     }
 
     // ------------------------------------------------------------------
